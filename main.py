@@ -9,7 +9,7 @@ import asyncio
 import requests
 
 from config import settings
-from openapi_parsing import get_weather_dynamic
+from OpenAPIFunctionGenerator import OpenAPIFunctionGenerator
 
 # Define a tool
 async def get_weather(lat: float, lon: float) -> str:
@@ -49,6 +49,9 @@ async def weather_main() -> None:
     get_weather_tool = FunctionTool(get_weather,
                                 description="Receives latitude and longitude coordinates, and gets the current weather at that location.")
     
+    generator = OpenAPIFunctionGenerator()
+    get_weather_dynamic = generator.openAPI_yaml_spec_to_function('tools.yaml')
+
     get_weather_dynamic_tool = FunctionTool(get_weather_dynamic,
                                 description="Gets the weather")
     
@@ -122,7 +125,7 @@ async def weather_main() -> None:
 
     # Run the team and stream messages to the console
     # stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
-    stream = agent_team.run_stream(task="What's the weather like in Moscow today?")
+    stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
     await Console(stream)
 
 

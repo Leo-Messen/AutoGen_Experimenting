@@ -5,22 +5,62 @@ from urllib.parse import urljoin
 from config import settings
 from openapi_parser.enumeration import BaseLocation
 from openapi_parser.specification import Security, SecurityType
+from openapi_parser import parse, enumeration
 
 from requests.models import Request
 
 class OpenAPIFunctionGenerator:
-    def __init__(self, base_url: str):
-        """
-        Initialize the function generator with a base URL.
+
+    def _get_required_params(self, operation):
+        queryParams = operation.parameters
+        requiredParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True]
+
+        for i in range(len(requiredParams)):
+            if requiredParams[i][1].value == 'number':
+                requiredParams[i] = (requiredParams[i][0],float)
+            elif requiredParams[i][1].value == 'string':
+                requiredParams[i] = (requiredParams[i][0],str)
         
-        This allows us to create dynamic API call functions 
-        for different endpoints while maintaining a consistent base.
-        """
-        self.base_url = base_url
+        return requiredParams
+
+
+    def _get_optional_params(self, operation):
+        queryParams = operation.parameters
+        optionalParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False]
+
+        for i in range(len(optionalParams)):
+            if optionalParams[i][1].value == 'number':
+                optionalParams[i] = (optionalParams[i][0],float)
+            elif optionalParams[i][1].value == 'string':
+                optionalParams[i] = (optionalParams[i][0],str)
+        
+        return optionalParams
+
+    def openAPI_yaml_spec_to_function(self, path):
+        specification = parse('tools.yaml')
+        http_method = specification.paths[0].operations[0].method.value
+        operationId = specification.paths[0].operations[0].operation_id
+        security_schemas = specification.security_schemas['ApiKeyAuth']
+
+        
+        rqP = self._get_required_params(specification.paths[0].operations[0])
+        optP = self._get_optional_params(specification.paths[0].operations[0])
+
+        return self.create_api_function(
+                                path=specification.paths[0].url,
+                                base_url=specification.servers[0].url,
+                                func_name=operationId,
+                                http_method=http_method,
+                                required_params=rqP,
+                                optional_params=optP,
+                                apikey_security = security_schemas
+                )
+
 
     def create_api_function(
         self, 
         func_name,
+        base_url : str,
         path: str, 
         http_method: str, 
         apikey_security : Security,
@@ -72,7 +112,7 @@ class OpenAPIFunctionGenerator:
             print(query_params)
 
             # Construct full URL
-            full_url = urljoin(self.base_url, path)
+            full_url = urljoin(base_url, path)
             
             # Determine HTTP method dynamically
             request_method = getattr(requests, http_method.lower())
@@ -99,18 +139,10 @@ if __name__ == "__main__":
     BASE_URL = 'https://api.openweathermap.org'
     
     # Create the weather function
-    generator = OpenAPIFunctionGenerator(BASE_URL)
+    generator = OpenAPIFunctionGenerator()
     
     # Create the weather function with specific requirements
-    get_weather = generator.create_api_function(
-        path='/data/2.5/weather',
-        func_name='get_weather',
-        http_method='get',
-        required_params=[('lat', float), ('lon', float)],
-        optional_params=[('mode', str), ('units', str), ('lang',str)],
-        apikey_security=Security(type=SecurityType.API_KEY, location=BaseLocation.QUERY, name='appid')
-        
-    )
+    get_weather = generator.openAPI_yaml_spec_to_function('tools.yaml')
     
     # Now you can call it like this
     weather_data = get_weather(

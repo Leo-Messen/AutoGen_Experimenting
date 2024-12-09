@@ -48,26 +48,3 @@ optionalParams = [qp.name for qp in queryParams if qp.location == enumeration.Pa
 security_schemas = specification.security_schemas['ApiKeyAuth']
 # print(url, operation.value, queryParamNames, operationId, security_schemas, sep='\n')
 
-fg = OpenAPIFunctionGenerator(specification.servers[0].url)
-rqP = get_required_params(specification.paths[0].operations[0])
-# print('rqp', rqP)
-get_weather_dynamic = fg.create_api_function(
-                        path=specification.paths[0].url,
-                        func_name=operationId,
-                        http_method=operation.value,
-                        required_params=rqP,
-                        optional_params=get_optional_params(specification.paths[0].operations[0]),
-                        apikey_security = security_schemas
-        )
-# print(inspect.signature(get_weather_dynamic))
-
-# Now you can call it like this
-# weather_data = get_weather_dynamic(
-#     lat=44.52, 
-#     lon=9.65, 
-#     units = "metric"
-#     )
-
-# print(inspect.signature(get_weather_dynamic))
-# print(weather_data)
-
