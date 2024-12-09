@@ -46,10 +46,10 @@ class OpenAPIFunctionToolGenerator:
 
         tool_desc = specification.paths[0].description
         
-        rqP = OpenAPIFunctionGenerator._get_required_params(specification.paths[0].operations[0])
-        optP = OpenAPIFunctionGenerator._get_optional_params(specification.paths[0].operations[0])
+        rqP = OpenAPIFunctionToolGenerator._get_required_params(specification.paths[0].operations[0])
+        optP = OpenAPIFunctionToolGenerator._get_optional_params(specification.paths[0].operations[0])
 
-        tool_func = OpenAPIFunctionGenerator._create_api_function(
+        tool_func = OpenAPIFunctionToolGenerator._create_api_function(
                                 path=specification.paths[0].url,
                                 base_url=specification.servers[0].url,
                                 func_name=operationId,
@@ -143,4 +143,4 @@ if __name__ == "__main__":
     BASE_URL = 'https://api.openweathermap.org'
         
     # Create the weather function with specific requirements
-    get_weather_generated = OpenAPIFunctionGenerator.openAPI_yaml_spec_to_functool('tools.yaml')
+    get_weather_generated = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functool('tools.yaml')
