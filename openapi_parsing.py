@@ -2,7 +2,6 @@ from openapi_parser import parse, enumeration
 import pprint
 import inspect
 import types
-from OpenAPIFunctionGenerator import OpenAPIFunctionGenerator
 from config import settings
 
 
@@ -44,6 +43,8 @@ operationId = specification.paths[0].operations[0].operation_id
 
 requiredParams = [qp.name for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True] 
 optionalParams = [qp.name for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False] 
+
+description = specification.paths[0].description
 
 security_schemas = specification.security_schemas['ApiKeyAuth']
 # print(url, operation.value, queryParamNames, operationId, security_schemas, sep='\n')

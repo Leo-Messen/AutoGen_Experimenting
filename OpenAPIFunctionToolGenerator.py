@@ -8,10 +8,11 @@ from openapi_parser.specification import Security, SecurityType
 from openapi_parser import parse, enumeration
 
 from requests.models import Request
+from autogen_core.components.tools import FunctionTool
 
-class OpenAPIFunctionGenerator:
-
-    def _get_required_params(self, operation):
+class OpenAPIFunctionToolGenerator:
+    @staticmethod
+    def _get_required_params(operation):
         queryParams = operation.parameters
         requiredParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True]
 
@@ -23,8 +24,8 @@ class OpenAPIFunctionGenerator:
         
         return requiredParams
 
-
-    def _get_optional_params(self, operation):
+    @staticmethod
+    def _get_optional_params(operation):
         queryParams = operation.parameters
         optionalParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False]
 
@@ -35,18 +36,20 @@ class OpenAPIFunctionGenerator:
                 optionalParams[i] = (optionalParams[i][0],str)
         
         return optionalParams
-
-    def openAPI_yaml_spec_to_function(self, path):
+    
+    @staticmethod
+    def openAPI_yaml_spec_to_functool(path) -> FunctionTool:
         specification = parse('tools.yaml')
         http_method = specification.paths[0].operations[0].method.value
         operationId = specification.paths[0].operations[0].operation_id
         security_schemas = specification.security_schemas['ApiKeyAuth']
 
+        tool_desc = specification.paths[0].description
         
-        rqP = self._get_required_params(specification.paths[0].operations[0])
-        optP = self._get_optional_params(specification.paths[0].operations[0])
+        rqP = OpenAPIFunctionGenerator._get_required_params(specification.paths[0].operations[0])
+        optP = OpenAPIFunctionGenerator._get_optional_params(specification.paths[0].operations[0])
 
-        return self.create_api_function(
+        tool_func = OpenAPIFunctionGenerator._create_api_function(
                                 path=specification.paths[0].url,
                                 base_url=specification.servers[0].url,
                                 func_name=operationId,
@@ -56,9 +59,11 @@ class OpenAPIFunctionGenerator:
                                 apikey_security = security_schemas
                 )
 
+        return FunctionTool(tool_func, tool_desc, name=operationId)
+        
 
-    def create_api_function(
-        self, 
+    @staticmethod
+    def _create_api_function(
         func_name,
         base_url : str,
         path: str, 
@@ -102,14 +107,13 @@ class OpenAPIFunctionGenerator:
         
         
         # The actual API call function to be returned
-        def api_call_function(*args, **kwargs):
+        def api_call_function(**kwargs):
             # Validate required parameters are present
-            bound_arguments = inspect.Signature(parameters).bind(*args, **kwargs)
+            bound_arguments = inspect.Signature(parameters).bind(**kwargs)
             bound_arguments.apply_defaults()
             
             # Separate arguments into query parameters
             query_params = bound_arguments.arguments
-            print(query_params)
 
             # Construct full URL
             full_url = urljoin(base_url, path)
@@ -126,10 +130,10 @@ class OpenAPIFunctionGenerator:
                 print(f"API Call Error: {e}")
                 raise
         
-        # Set function metadata
+        # Set function metadata to help with tool use
         api_call_function.__name__ = func_name
         api_call_function.__signature__ = inspect.Signature(parameters)
-        
+
         return api_call_function
 
 # Demonstration
@@ -137,18 +141,6 @@ if __name__ == "__main__":
     # Your actual API key would go here
     API_KEY = settings.WEATHER_API_KEY
     BASE_URL = 'https://api.openweathermap.org'
-    
-    # Create the weather function
-    generator = OpenAPIFunctionGenerator()
-    
+        
     # Create the weather function with specific requirements
-    get_weather = generator.openAPI_yaml_spec_to_function('tools.yaml')
-    
-    # Now you can call it like this
-    weather_data = get_weather(
-        lat=44.52, 
-        lon=9.65, 
-        units='metric'
-    )
-    print(inspect.signature(get_weather))
-    print(weather_data)
+    get_weather_generated = OpenAPIFunctionGenerator.openAPI_yaml_spec_to_functool('tools.yaml')
