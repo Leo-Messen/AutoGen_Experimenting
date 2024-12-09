@@ -9,12 +9,6 @@ servers:
     description: Main OpenWeather API server
 
 paths:
-  components:
-    securitySchemes:
-      ApiKeyAuth: # arbitrary name for the security scheme
-        type: apiKey
-        in: query # can be "header", "query" or "cookie"
-        name: appid
   /data/2.5/weather:
     get:
       operationId: get_weather
@@ -34,12 +28,12 @@ paths:
             type: number
           required: true
           description: Longitude of the location
-        - in: query
-          name: appid
-          schema:
-            type: string
-          required: true
-          description: A unique api key used for authentication
+        # - in: query
+        #   name: appid
+        #   schema:
+        #     type: string
+        #   required: true
+        #   description: A unique api key used for authentication
         - in: query
           name: mode
           schema:
@@ -99,3 +93,10 @@ paths:
   #   get:
   #     summary: Return the latitude and longitude of a named location
   #     description: Return the latitude and longitude of a named location
+
+components:
+  securitySchemes:
+    ApiKeyAuth: # arbitrary name for the security scheme
+      type: apiKey
+      in: query # can be "header", "query" or "cookie"
+      name: appid

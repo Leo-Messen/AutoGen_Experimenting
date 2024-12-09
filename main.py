@@ -9,7 +9,7 @@ import asyncio
 import requests
 
 from config import settings
-
+from openapi_parsing import get_weather_dynamic
 
 # Define a tool
 async def get_weather(lat: float, lon: float) -> str:
@@ -49,11 +49,11 @@ async def weather_main() -> None:
     get_weather_tool = FunctionTool(get_weather,
                                 description="Receives latitude and longitude coordinates, and gets the current weather at that location.")
     
+    get_weather_dynamic_tool = FunctionTool(get_weather_dynamic,
+                                description="Gets the weather")
+    
     get_weather_from_city_tool = FunctionTool(get_weather_from_city,
                                 description="Receives a city name, and gets the current weather at that location.")
-    
-    tools = [get_latitude_and_longitude_from_city_tool, get_weather_tool]
-
 
     # Define a model
     model = OpenAIChatCompletionClient(
@@ -66,7 +66,7 @@ async def weather_main() -> None:
     weather_agent = AssistantAgent(
         name="weather_agent",
         model_client=model,
-        tools=[get_weather_from_city_tool],
+        tools=[get_weather_tool, get_latitude_and_longitude_from_city_tool],
         description="An agent that has access to tools that can get the current weather conditions in a specific location.",
         system_message="""You have access to tools to retrieve weather data.
         Find the weather in the city specified in the context and report it.
@@ -97,20 +97,32 @@ async def weather_main() -> None:
         Do NOT use any of your own knowledge. Your job is purely to sumnmarize knowledge gained for other agents.
         When reporting on the weather, adopt a conversational tone. Don't go into too much detail. Focus on the aspects of the weather people care about like temperature, general conditions, how windy it is etc.
         Take into account the weather conditions when selecting information from the guide_agent. Omit guide_agents suggestions where the weather isn't suitable.
-        Always only handoff to one agent at a time.
+        Only handoff to one agent at a time.
         Use TERMINATE at the end of your message when you have fulfilled your task.""",
         handoffs=["weather_agent", "guide_agent"]
+    )
+
+    solo_weather_agent = AssistantAgent(
+        name="weather_agent",
+        model_client=model,
+        tools=[get_weather_dynamic_tool, get_latitude_and_longitude_from_city_tool],
+        description="An agent that has access to tools that can get the current weather conditions in a specific location.",
+        system_message="""You have access to tools to retrieve weather data.
+        Find the weather in the city specified in the context and report it.
+        Use the correct units of measurement for temperature in the city specified.
+        Use TERMINATE at the end of your message when you have fulfilled your task.""",
     )
 
     # Define termination condition
     termination = TextMentionTermination("TERMINATE") | MaxMessageTermination(max_messages=50)
 
     # Define a team
-    agent_team = Swarm([travel_agent, guide_agent, weather_agent], termination_condition=termination)
-    # agent_team = RoundRobinGroupChat([weather_agent], termination_condition=MaxMessageTermination(max_messages=10))
+    # agent_team = Swarm([travel_agent, guide_agent, weather_agent], termination_condition=termination)
+    agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
 
     # Run the team and stream messages to the console
-    stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
+    # stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
+    stream = agent_team.run_stream(task="What's the weather like in Moscow today?")
     await Console(stream)
 
 
