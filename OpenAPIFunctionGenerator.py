@@ -1,0 +1,119 @@
+import requests
+import inspect
+from typing import Dict, Any, Callable
+from urllib.parse import urljoin
+from config import settings
+
+class OpenAPIFunctionGenerator:
+    def __init__(self, base_url: str):
+        """
+        Initialize the function generator with a base URL.
+        
+        This allows us to create dynamic API call functions 
+        for different endpoints while maintaining a consistent base.
+        """
+        self.base_url = base_url
+
+    def create_api_function(
+        self, 
+        func_name,
+        path: str, 
+        http_method: str = 'get', 
+        required_params: list = None, 
+        optional_params: list = None
+    ) -> Callable:
+        """
+        Dynamically create a function for making API calls.
+        
+        Args:
+            path (str): The API endpoint path
+            http_method (str): HTTP method (get, post, etc.)
+            required_params (list): Parameters that must be provided
+            optional_params (list): Parameters that can be optionally provided
+        
+        Returns:
+            Callable: A dynamically created function for the API endpoint
+        """
+        # Default to empty lists if not provided
+        required_params = required_params or []
+        optional_params = optional_params or []
+        
+        # Create a signature with all possible parameters
+        parameters = (
+            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY) for param in required_params] +
+            [inspect.Parameter(param, inspect.Parameter.VAR_KEYWORD) for param in optional_params]
+        )
+        
+        # The actual API call function to be returned
+        def api_call_function(*args, **kwargs):
+            # Validate required parameters are present
+            bound_arguments = inspect.Signature(parameters).bind(*args, **kwargs)
+            bound_arguments.apply_defaults()
+            
+            # Separate arguments into query parameters
+            query_params = bound_arguments.arguments
+            
+            # Construct full URL
+            full_url = urljoin(self.base_url, path)
+            
+            # Determine HTTP method dynamically
+            request_method = getattr(requests, http_method.lower())
+            
+            # Make the API call
+            try:
+                response = request_method(full_url, params=query_params)
+                response.raise_for_status()  # Raise an exception for bad responses
+                return response.json()
+            except requests.RequestException as e:
+                print(f"API Call Error: {e}")
+                raise
+        
+        # Set function metadata
+        api_call_function.__name__ = func_name
+        api_call_function.__signature__ = inspect.Signature(parameters)
+        
+        return api_call_function
+
+# Example Usage with OpenWeather API
+def create_weather_api_function(base_url, api_key):
+    """
+    Create a specific weather API function with pre-configured base URL and API key
+    """
+    generator = OpenAPIFunctionGenerator(base_url)
+    
+    # Create the weather function with specific requirements
+    get_weather = generator.create_api_function(
+        path='/data/2.5/weather',
+        func_name='get_weather',
+        http_method='get',
+        required_params=['lat', 'lon', 'appid'],
+        optional_params=['mode', 'units', 'lang']
+    )
+    
+    # Partial application of the API key
+    def weather_wrapper(lat, lon, **kwargs):
+        return get_weather(
+            lat=lat, 
+            lon=lon, 
+            appid=api_key, 
+            **kwargs
+        )
+    
+    return weather_wrapper
+
+# Demonstration
+if __name__ == "__main__":
+    # Your actual API key would go here
+    API_KEY = settings.WEATHER_API_KEY
+    BASE_URL = 'https://api.openweathermap.org'
+    
+    # Create the weather function
+    get_weather = create_weather_api_function(BASE_URL, API_KEY)
+    
+    # Now you can call it like this
+    weather_data = get_weather(
+        lat=44.52, 
+        lon=44.52, 
+        units='metric'
+    )
+    print(weather_data)

@@ -1,0 +1,101 @@
+openapi: 3.0.0
+info:
+  title: OpenWeather API
+  description: A free and open soruce API for getting information about the weather
+  version: "3.0"
+
+servers:
+  - url: https://api.openweathermap.org
+    description: Main OpenWeather API server
+
+paths:
+  components:
+    securitySchemes:
+      ApiKeyAuth: # arbitrary name for the security scheme
+        type: apiKey
+        in: query # can be "header", "query" or "cookie"
+        name: appid
+  /data/2.5/weather:
+    get:
+      operationId: get_weather
+      summary: Returns the weather conditions at a specific latitude and longitude
+      description: Returns the weather conditions at a specific latitude and longitude
+
+      parameters:
+        - in: query
+          name: lat
+          schema:
+            type: number
+          required: true
+          description: Latitude of the location
+        - in: query
+          name: lon
+          schema:
+            type: number
+          required: true
+          description: Longitude of the location
+        - in: query
+          name: appid
+          schema:
+            type: string
+          required: true
+          description: A unique api key used for authentication
+        - in: query
+          name: mode
+          schema:
+            type: string
+          required: false
+          description: Response format. Possible values are xml and html. If you don't use the mode parameter format is JSON by default.
+        - in: query
+          name: units
+          schema:
+            type: string
+          required: false
+          description: Units of measurement. Standard, metric and imperial units are available.
+        - in: query
+          name: lang
+          schema:
+            type: string
+          required: false
+          description: You can use this parameter to get the output in your language.
+
+      responses:
+        "200": # status code
+          description: A JSON response containing attributes of the weather at the requested latitude and longitude
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  properties:
+                    "coord":
+                      type: object
+                      properties:
+                        "lat":
+                          type: number
+                          example: 44.52
+                          description: Latitude of requested location
+                        "lon":
+                          type: number
+                          example: 44.52
+                          description: Longitude of requested location
+                    "weather":
+                      type: object
+                      properties:
+                        "id":
+                          type: integer
+                          example: 803
+                          description: Unique Id of weather description
+                        "main":
+                          type: string
+                          example: Clouds
+                          description: General weather conditions
+                        "description":
+                          type: string
+                          example: broken clouds
+                          description: more detailed description of weather conditions
+
+  # /geo/1.0/direct:
+  #   get:
+  #     summary: Return the latitude and longitude of a named location
+  #     description: Return the latitude and longitude of a named location
