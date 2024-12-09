@@ -6,6 +6,8 @@ from config import settings
 from openapi_parser.enumeration import BaseLocation
 from openapi_parser.specification import Security, SecurityType
 
+from requests.models import Request
+
 class OpenAPIFunctionGenerator:
     def __init__(self, base_url: str):
         """
@@ -20,10 +22,10 @@ class OpenAPIFunctionGenerator:
         self, 
         func_name,
         path: str, 
-        http_method: str = 'get', 
+        http_method: str, 
+        apikey_security : Security,
         required_params: list = None, 
         optional_params: list = None,
-        apikey_security : Security = None
     ) -> Callable:
         """
         Dynamically create a function for making API calls.
@@ -33,6 +35,7 @@ class OpenAPIFunctionGenerator:
             http_method (str): HTTP method (get, post, etc.)
             required_params (list): Parameters that must be provided
             optional_params (list): Parameters that can be optionally provided
+            apikey_security (Security): Parameters that can be optionally provided
         
         Returns:
             Callable: A dynamically created function for the API endpoint
@@ -55,7 +58,7 @@ class OpenAPIFunctionGenerator:
             
             elif apikey_security.location == BaseLocation.HEADER:
                 # Retrieve api key and add it to headers
-                headers[apikey_security.name] = "API_KEY"
+                headers[apikey_security.name] = settings.WEATHER_API_KEY
         
         
         # The actual API call function to be returned
@@ -73,7 +76,6 @@ class OpenAPIFunctionGenerator:
             
             # Determine HTTP method dynamically
             request_method = getattr(requests, http_method.lower())
-
             
             # Make the API call
             try:
