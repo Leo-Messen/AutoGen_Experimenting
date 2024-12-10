@@ -39,7 +39,7 @@ class OpenAPIFunctionToolGenerator:
     
     @staticmethod
     def openAPI_yaml_spec_to_functool(path) -> FunctionTool:
-        specification = parse('tools.yaml')
+        specification = parse(path)
         http_method = specification.paths[0].operations[0].method.value
         operationId = specification.paths[0].operations[0].operation_id
         security_schemas = specification.security_schemas['ApiKeyAuth']
@@ -138,9 +138,9 @@ class OpenAPIFunctionToolGenerator:
 
 # Demonstration
 if __name__ == "__main__":
-    # Your actual API key would go here
-    API_KEY = settings.WEATHER_API_KEY
-    BASE_URL = 'https://api.openweathermap.org'
         
     # Create the weather function with specific requirements
     get_weather_generated = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functool('tools.yaml')
+    
+    createUser = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functool('create_user_tool.yaml')
+    print(createUser(name = "Leo", job = "Consultant"))

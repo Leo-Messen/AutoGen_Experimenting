@@ -49,7 +49,7 @@ async def weather_main() -> None:
     get_weather_tool = FunctionTool(get_weather,
                                 description="Receives latitude and longitude coordinates, and gets the current weather at that location.")
     
-    get_weather_dynamic_tool = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functool('tools.yaml')
+    get_weather_dynamic_tool = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functool('weather_tool.yaml')
     
     get_weather_from_city_tool = FunctionTool(get_weather_from_city,
                                 description="Receives a city name, and gets the current weather at that location.")
@@ -65,7 +65,7 @@ async def weather_main() -> None:
     weather_agent = AssistantAgent(
         name="weather_agent",
         model_client=model,
-        tools=[get_weather_tool, get_latitude_and_longitude_from_city_tool],
+        tools=[get_weather_dynamic_tool, get_latitude_and_longitude_from_city_tool],
         description="An agent that has access to tools that can get the current weather conditions in a specific location.",
         system_message="""You have access to tools to retrieve weather data.
         Find the weather in the city specified in the context and report it.
@@ -116,12 +116,12 @@ async def weather_main() -> None:
     termination = TextMentionTermination("TERMINATE") | MaxMessageTermination(max_messages=50)
 
     # Define a team
-    # agent_team = Swarm([travel_agent, guide_agent, weather_agent], termination_condition=termination)
-    agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
+    agent_team = Swarm([travel_agent, guide_agent, weather_agent], termination_condition=termination)
+    # agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
 
     # Run the team and stream messages to the console
-    # stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
-    stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
+    stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
+    # stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
     await Console(stream)
 
 

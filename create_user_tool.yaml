@@ -1,0 +1,31 @@
+openapi: 3.0.0
+info:
+  title: OpenWeather API
+  description: A free and open soruce API for getting information about the weather
+  version: "3.0"
+
+servers:
+  - url: https://reqres.in/
+    description: Test create user
+
+paths:
+  /api/users:
+    post:
+      operationId: create_user
+      description: Creates a user
+
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                job:
+                  ty pe: string
+              required:
+                - name
+                - job
