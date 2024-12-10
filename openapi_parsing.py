@@ -30,9 +30,9 @@ def get_optional_params(operation):
     
     return optionalParams
 
-specification = parse('tools.yaml')
+specification = parse('create_user_tool.yaml')
 
-# pprint.pp(specification)
+pprint.pp(specification)
 
 url = specification.servers[0].url + specification.paths[0].url
 operation = specification.paths[0].operations[0].method
@@ -46,6 +46,5 @@ optionalParams = [qp.name for qp in queryParams if qp.location == enumeration.Pa
 
 description = specification.paths[0].description
 
-security_schemas = specification.security_schemas['ApiKeyAuth']
-# print(url, operation.value, queryParamNames, operationId, security_schemas, sep='\n')
+print(url, operation.value, queryParamNames, operationId, sep='\n')
 

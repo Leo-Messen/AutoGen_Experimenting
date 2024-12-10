@@ -117,11 +117,11 @@ async def weather_main() -> None:
 
     # Define a team
     agent_team = Swarm([travel_agent, guide_agent, weather_agent], termination_condition=termination)
-    # agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
+    agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
 
     # Run the team and stream messages to the console
-    stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
-    # stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
+    # stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
+    stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
     await Console(stream)
 
 
