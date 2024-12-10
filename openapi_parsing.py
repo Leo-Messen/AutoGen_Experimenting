@@ -5,30 +5,34 @@ import types
 from config import settings
 
 
-def get_required_params(operation):
-    queryParams = operation.parameters
-    requiredParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True]
+def get_required_params(body):
+    body_properties = body.content[0].schema.properties
+    required_properties = body.content[0].schema.required
+        
+    required = [(bp.name, bp.schema.type) for bp in body_properties if bp.name in required_properties]
 
-    for i in range(len(requiredParams)):
-        if requiredParams[i][1].value == 'number':
-            requiredParams[i] = (requiredParams[i][0],float)
-        elif requiredParams[i][1].value == 'string':
-            requiredParams[i] = (requiredParams[i][0],str)
+    for i in range(len(required)):
+        if required[i][1].value == 'number':
+            required[i] = (required[i][0],float)
+        elif required[i][1].value == 'string':
+            required[i] = (required[i][0],str)
     
-    return requiredParams
+    return required
 
 
-def get_optional_params(operation):
-    queryParams = operation.parameters
-    optionalParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False]
+def get_optional_params(body):
+    body_properties = body.content[0].schema.properties
+    required_properties = body.content[0].schema.required
+        
+    optional = [(bp.name, bp.schema.type) for bp in body_properties if bp.name not in required_properties]
 
-    for i in range(len(optionalParams)):
-        if optionalParams[i][1].value == 'number':
-            optionalParams[i] = (optionalParams[i][0],float)
-        elif optionalParams[i][1].value == 'string':
-            optionalParams[i] = (optionalParams[i][0],str)
+    for i in range(len(optional)):
+        if optional[i][1].value == 'number':
+            optional[i] = (optional[i][0],float)
+        elif optional[i][1].value == 'string':
+            optional[i] = (optional[i][0],str)
     
-    return optionalParams
+    return optional
 
 specification = parse('create_user_tool.yaml')
 
@@ -44,7 +48,11 @@ operationId = specification.paths[0].operations[0].operation_id
 requiredParams = [qp.name for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True] 
 optionalParams = [qp.name for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False] 
 
+body = specification.paths[0].operations[0].request_body
+body_properties = body.content[0].schema.properties
+requiredBody = [p.name for p in body_properties if p.name in body.content[0].schema.required] 
+
 description = specification.paths[0].description
 
-print(url, operation.value, queryParamNames, operationId, sep='\n')
+print(body_properties, get_required_params(body), get_optional_params(body), sep='\n')
 
