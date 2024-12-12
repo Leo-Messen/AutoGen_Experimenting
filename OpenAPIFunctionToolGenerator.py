@@ -13,30 +13,17 @@ from autogen_core.components.tools import FunctionTool
 
 class OpenAPIFunctionToolGenerator:
     @staticmethod
-    def _get_required_query_params(operation):
+    def _get_query_params(operation, required: bool):
         queryParams = operation.parameters
-        requiredParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True]
+        params = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == required]
 
-        for i in range(len(requiredParams)):
-            if requiredParams[i][1].value == 'number':
-                requiredParams[i] = (requiredParams[i][0],float)
-            elif requiredParams[i][1].value == 'string':
-                requiredParams[i] = (requiredParams[i][0],str)
+        for i in range(len(params)):
+            if params[i][1].value == 'number':
+                params[i] = (params[i][0],float)
+            elif params[i][1].value == 'string':
+                params[i] = (params[i][0],str)
         
-        return requiredParams
-
-    @staticmethod
-    def _get_optional_query_params(operation):
-        queryParams = operation.parameters
-        optionalParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False]
-
-        for i in range(len(optionalParams)):
-            if optionalParams[i][1].value == 'number':
-                optionalParams[i] = (optionalParams[i][0],float)
-            elif optionalParams[i][1].value == 'string':
-                optionalParams[i] = (optionalParams[i][0],str)
-        
-        return optionalParams
+        return params
     
     @staticmethod
     def _get_body_params(body, required: bool):
@@ -77,8 +64,8 @@ class OpenAPIFunctionToolGenerator:
 
                 tool_desc = operation.description
             
-                rqP = OpenAPIFunctionToolGenerator._get_required_query_params(operation)
-                optP = OpenAPIFunctionToolGenerator._get_optional_query_params(operation)
+                rqP = OpenAPIFunctionToolGenerator._get_query_params(operation, True)
+                optP = OpenAPIFunctionToolGenerator._get_query_params(operation, False)
                 
                 rqBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, True)
                 optBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, False)
