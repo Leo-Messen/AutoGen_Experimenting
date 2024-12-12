@@ -182,16 +182,15 @@ class OpenAPIFunctionToolGenerator:
         )
 
         if apikey_security:
-            # Retrieve API key for this service and add it to the appropriate part of the request
-            key = settings.WEATHER_API_KEY
-            if apikey_security.location == BaseLocation.QUERY:
-                # Retrive API KEY and set it as a default parameter
-                parameters.append(inspect.Parameter(apikey_security.name, inspect.Parameter.KEYWORD_ONLY, annotation=str ,default=key))
-            
-            elif apikey_security.location == BaseLocation.HEADER:
-                # Retrieve api key and add it to headers
-                headers[apikey_security.name] = key
-        
+            # Retrieve API key for this service
+            apikey = settings.WEATHER_API_KEY
+
+        # Separate arguments into query parameters and request data
+        query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
+        body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
+        print("QB PARAMS:", query_params, body_params)
+        # Construct full URL
+        full_url = urljoin(base_url, path)
         
         # The actual API call function to be returned
         def api_call_function(**kwargs):
@@ -200,10 +199,6 @@ class OpenAPIFunctionToolGenerator:
             # applies default values to optional parameters
             # bound_arguments.apply_defaults()
             
-            # Separate arguments into query parameters and request data
-            print(required_body_params, required_query_params)
-            query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
-            body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
 
             supplied_args = bound_arguments.arguments
 
@@ -218,14 +213,21 @@ class OpenAPIFunctionToolGenerator:
                     requestBodyParams[key] = supplied_args[key]
                    
 
-            print(bound_arguments.arguments)
-            # Construct full URL
-            full_url = urljoin(base_url, path)
+            print("Bound_arguments: ", supplied_args)
+            
+            if apikey_security:
+                if apikey_security.location == BaseLocation.QUERY:
+                    # Retrive API KEY and set it as a default parameter
+                    requestQueryParams[apikey_security.name] = apikey
+                
+                elif apikey_security.location == BaseLocation.HEADER:
+                    # Retrieve api key and add it to headers
+                    headers[apikey_security.name] = apikey
             
             # Determine HTTP method dynamically
             if http_method.lower() == 'get':
                 try:
-                    response = requests.get(full_url, params=query_params, headers = headers, data=requestBodyParams)
+                    response = requests.get(full_url, params=requestQueryParams, headers = headers)
                     response.raise_for_status()  # Raise an exception for bad responses
                     return response.json()
                 except requests.RequestException as e:
@@ -234,17 +236,16 @@ class OpenAPIFunctionToolGenerator:
 
             elif http_method.lower() == "post":
                 try:
-                    response = requests.post(full_url, params=query_params, headers = headers, data=requestBodyParams)
+                    response = requests.post(full_url, params=requestQueryParams, headers = headers, data=requestBodyParams)
                     response.raise_for_status()  # Raise an exception for bad responses
                     return response.json()
                 except requests.RequestException as e:
                     print(f"API Call Error: {e}")
                     raise
         
-        # Set function metadata to help with tool use
-        api_call_function.__name__ = func_name
+        # Set function signature to help with tool use
         api_call_function.__signature__ = inspect.Signature(parameters)
-
+        print("Signature: ", api_call_function.__signature__)
         return api_call_function
 
     def _join_lists(l1: list, l2 : list) -> list:

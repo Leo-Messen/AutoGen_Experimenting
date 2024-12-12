@@ -12,10 +12,10 @@ from config import settings
 from OpenAPIFunctionToolGenerator import OpenAPIFunctionToolGenerator
 
 # Define a tool
-async def get_weather(lat: float, lon: float) -> str:
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={settings.WEATHER_API_KEY}"
-    response = requests.get(url)
-    return response.json()
+# async def get_weather(lat: float, lon: float) -> str:
+#     url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={settings.WEATHER_API_KEY}"
+#     response = requests.get(url)
+#     return response.json()
 
 async def get_latitude_and_longitude_from_city(city: str):
     url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit={1}&appid={settings.WEATHER_API_KEY}'
@@ -46,8 +46,8 @@ async def weather_main() -> None:
     # Create a function tool.
     get_latitude_and_longitude_from_city_tool = FunctionTool(get_latitude_and_longitude_from_city, 
                                                             description="Receives a city name, and gets the latitude and longitude coordinates of that city.")
-    get_weather_tool = FunctionTool(get_weather,
-                                description="Receives latitude and longitude coordinates, and gets the current weather at that location.")
+    # get_weather_tool = FunctionTool(get_weather,
+                                # description="Receives latitude and longitude coordinates, and gets the current weather at that location.")
     
     get_weather_dynamic_tool = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functool('weather_tool.yaml')
     
@@ -127,13 +127,13 @@ async def weather_main() -> None:
 
     # Define a team
     # agent_team = Swarm([travel_agent, guide_agent, weather_agent], termination_condition=termination)
-    # agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
-    agent_team = RoundRobinGroupChat([create_user], termination_condition=termination)
+    agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
+    # agent_team = RoundRobinGroupChat([create_user], termination_condition=termination)
 
     # Run the team and stream messages to the console
     # stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
-    # stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
-    stream = agent_team.run_stream(task="Hello! I am a user and I want you to create me a profile. My name is Leo and I am a Software Engineer")
+    stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
+    # stream = agent_team.run_stream(task="Hello! I am a user and I want you to create me a profile. My name is Leo and I am a Software Engineer")
     await Console(stream)
 
 
