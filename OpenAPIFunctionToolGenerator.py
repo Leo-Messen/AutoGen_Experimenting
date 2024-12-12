@@ -39,40 +39,24 @@ class OpenAPIFunctionToolGenerator:
         return optionalParams
     
     @staticmethod
-    def _get_required_body_params(body):
+    def _get_body_params(body, required: bool):
         if body == None:
             return []
         
         body_properties = body.content[0].schema.properties
         required_properties = body.content[0].schema.required
-            
-        required = [(bp.name, bp.schema.type) for bp in body_properties if bp.name in required_properties]
+        if required == True:
+            params = [(bp.name, bp.schema.type) for bp in body_properties if bp.name in required_properties]
+        else:
+            params = [(bp.name, bp.schema.type) for bp in body_properties if bp.name not in required_properties]
 
         for i in range(len(required)):
-            if required[i][1].value == 'number':
-                required[i] = (required[i][0],float)
-            elif required[i][1].value == 'string':
-                required[i] = (required[i][0],str)
+            if params[i][1].value == 'number':
+                params[i] = (params[i][0],float)
+            elif params[i][1].value == 'string':
+                params[i] = (params[i][0],str)
         
-        return required
-
-    @staticmethod
-    def _get_optional_body_params(body):
-        if body == None:
-            return []
-        
-        body_properties = body.content[0].schema.properties
-        required_properties = body.content[0].schema.required
-            
-        optional = [(bp.name, bp.schema.type) for bp in body_properties if bp.name not in required_properties]
-
-        for i in range(len(optional)):
-            if optional[i][1].value == 'number':
-                optional[i] = (optional[i][0],float)
-            elif optional[i][1].value == 'string':
-                optional[i] = (optional[i][0],str)
-        
-        return optional
+        return params
 
     @staticmethod
     def openAPI_yaml_spec_to_functools(path) -> FunctionTool:
@@ -96,8 +80,8 @@ class OpenAPIFunctionToolGenerator:
                 rqP = OpenAPIFunctionToolGenerator._get_required_query_params(operation)
                 optP = OpenAPIFunctionToolGenerator._get_optional_query_params(operation)
                 
-                rqBodyParams = OpenAPIFunctionToolGenerator._get_required_body_params(body)
-                optBodyParams = OpenAPIFunctionToolGenerator._get_optional_body_params(body)
+                rqBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, True)
+                optBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, False)
 
                 tool_func = OpenAPIFunctionToolGenerator._create_api_function(
                                         path = path.url,
@@ -229,9 +213,9 @@ class OpenAPIFunctionToolGenerator:
 if __name__ == "__main__":
         
     # Create the weather function with specific requirements
-    # weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('weather_tool.yaml')
+    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('weather_tool.yaml')
     
-    user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('create_user_tool.yaml')
+    # user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('create_user_tool.yaml')
     
-    print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
-    print(user_tools)
+    # print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
+    # print(user_tools)
