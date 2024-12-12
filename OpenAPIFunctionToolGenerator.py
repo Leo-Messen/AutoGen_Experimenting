@@ -4,75 +4,57 @@ import pprint
 from typing import Dict, Any, Callable
 from urllib.parse import urljoin
 from config import settings
-from openapi_parser.enumeration import BaseLocation
+from openapi_parser.enumeration import BaseLocation, DataType, ParameterLocation
 from openapi_parser.specification import Security, SecurityType
-from openapi_parser import parse, enumeration
+from openapi_parser import parse
 
 from requests.models import Request
 from autogen_core.components.tools import FunctionTool
 
 class OpenAPIFunctionToolGenerator:
     @staticmethod
-    def _get_required_query_params(operation):
+    def _get_query_params(operation, required: bool):
         queryParams = operation.parameters
-        requiredParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True]
+        params = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == ParameterLocation.QUERY and qp.required == required]
 
-        for i in range(len(requiredParams)):
-            if requiredParams[i][1].value == 'number':
-                requiredParams[i] = (requiredParams[i][0],float)
-            elif requiredParams[i][1].value == 'string':
-                requiredParams[i] = (requiredParams[i][0],str)
-        
-        return requiredParams
+        for i in range(len(params)):                
+            match params[i][1]:
+                case DataType.NUMBER:
+                    params[i] = (params[i][0],float)
+                case DataType.STRING:
+                    params[i] = (params[i][0],str)
+                case DataType.INTEGER:
+                    params[i] = (params[i][0],int)
+                case DataType.BOOLEAN:
+                    params[i] = (params[i][0],bool)
 
-    @staticmethod
-    def _get_optional_query_params(operation):
-        queryParams = operation.parameters
-        optionalParams = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False]
-
-        for i in range(len(optionalParams)):
-            if optionalParams[i][1].value == 'number':
-                optionalParams[i] = (optionalParams[i][0],float)
-            elif optionalParams[i][1].value == 'string':
-                optionalParams[i] = (optionalParams[i][0],str)
-        
-        return optionalParams
+        return params
     
     @staticmethod
-    def _get_required_body_params(body):
+    def _get_body_params(body, required: bool):
         if body == None:
             return []
         
         body_properties = body.content[0].schema.properties
         required_properties = body.content[0].schema.required
-            
-        required = [(bp.name, bp.schema.type) for bp in body_properties if bp.name in required_properties]
 
-        for i in range(len(required)):
-            if required[i][1].value == 'number':
-                required[i] = (required[i][0],float)
-            elif required[i][1].value == 'string':
-                required[i] = (required[i][0],str)
-        
-        return required
+        if required == True:
+            params = [(bp.name, bp.schema.type) for bp in body_properties if bp.name in required_properties]
+        else:
+            params = [(bp.name, bp.schema.type) for bp in body_properties if bp.name not in required_properties]
 
-    @staticmethod
-    def _get_optional_body_params(body):
-        if body == None:
-            return []
-        
-        body_properties = body.content[0].schema.properties
-        required_properties = body.content[0].schema.required
-            
-        optional = [(bp.name, bp.schema.type) for bp in body_properties if bp.name not in required_properties]
+        for i in range(len(params)):                
+            match params[i][1]:
+                case DataType.NUMBER:
+                    params[i] = (params[i][0],float)
+                case DataType.STRING:
+                    params[i] = (params[i][0],str)
+                case DataType.INTEGER:
+                    params[i] = (params[i][0],int)
+                case DataType.BOOLEAN:
+                    params[i] = (params[i][0],bool)
 
-        for i in range(len(optional)):
-            if optional[i][1].value == 'number':
-                optional[i] = (optional[i][0],float)
-            elif optional[i][1].value == 'string':
-                optional[i] = (optional[i][0],str)
-        
-        return optional
+        return params
 
     @staticmethod
     def openAPI_yaml_spec_to_functools(path) -> FunctionTool:
@@ -93,11 +75,11 @@ class OpenAPIFunctionToolGenerator:
 
                 tool_desc = operation.description
             
-                rqP = OpenAPIFunctionToolGenerator._get_required_query_params(operation)
-                optP = OpenAPIFunctionToolGenerator._get_optional_query_params(operation)
+                rqP = OpenAPIFunctionToolGenerator._get_query_params(operation, True)
+                optP = OpenAPIFunctionToolGenerator._get_query_params(operation, False)
                 
-                rqBodyParams = OpenAPIFunctionToolGenerator._get_required_body_params(body)
-                optBodyParams = OpenAPIFunctionToolGenerator._get_optional_body_params(body)
+                rqBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, True)
+                optBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, False)
 
                 tool_func = OpenAPIFunctionToolGenerator._create_api_function(
                                         path = path.url,
