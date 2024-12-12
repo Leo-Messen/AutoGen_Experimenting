@@ -75,74 +75,45 @@ class OpenAPIFunctionToolGenerator:
         return optional
 
     @staticmethod
-    def openAPI_yaml_spec_to_functool(path) -> FunctionTool:
+    def openAPI_yaml_spec_to_functools(path) -> FunctionTool:
+        tools = []
+
         specification = parse(path)
-        
-        http_method = specification.paths[0].operations[0].method.value
-        operationId = specification.paths[0].operations[0].operation_id
 
         security_schemas = None
         if 'ApiKeyAuth' in specification.security_schemas.keys():
             security_schemas = specification.security_schemas['ApiKeyAuth']
 
-        body = specification.paths[0].operations[0].request_body
+        for path in specification.paths:
+            for operation in path.operations:
+                http_method = operation.method.value
+                operationId = operation.operation_id
 
-        tool_desc = specification.paths[0].description
-        
-        rqP = OpenAPIFunctionToolGenerator._get_required_query_params(specification.paths[0].operations[0])
-        optP = OpenAPIFunctionToolGenerator._get_optional_query_params(specification.paths[0].operations[0])
-        
-        rqBodyParams = OpenAPIFunctionToolGenerator._get_required_body_params(body)
-        optBodyParams = OpenAPIFunctionToolGenerator._get_optional_body_params(body)
+                body = operation.request_body
 
-        tool_func = OpenAPIFunctionToolGenerator._create_api_function(
-                                path = specification.paths[0].url,
-                                base_url = specification.servers[0].url,
-                                func_name = operationId,
-                                http_method = http_method,
-                                required_query_params = rqP,
-                                optional_query_params = optP,
-                                required_body_params = rqBodyParams,
-                                optional_body_params = optBodyParams,
-                                apikey_security = security_schemas
-                )
+                tool_desc = operation.description
+            
+                rqP = OpenAPIFunctionToolGenerator._get_required_query_params(operation)
+                optP = OpenAPIFunctionToolGenerator._get_optional_query_params(operation)
+                
+                rqBodyParams = OpenAPIFunctionToolGenerator._get_required_body_params(body)
+                optBodyParams = OpenAPIFunctionToolGenerator._get_optional_body_params(body)
 
-        return FunctionTool(tool_func, tool_desc, name=operationId)
-    
-    @staticmethod
-    def openAPI_yaml_spec_to_func(path) -> Callable:
-        specification = parse(path)
+                tool_func = OpenAPIFunctionToolGenerator._create_api_function(
+                                        path = path.url,
+                                        base_url = specification.servers[0].url,
+                                        func_name = operationId,
+                                        http_method = http_method,
+                                        required_query_params = rqP,
+                                        optional_query_params = optP,
+                                        required_body_params = rqBodyParams,
+                                        optional_body_params = optBodyParams,
+                                        apikey_security = security_schemas
+                        )
 
-        http_method = specification.paths[0].operations[0].method.value
-        operationId = specification.paths[0].operations[0].operation_id
+                tools.append(FunctionTool(tool_func, tool_desc, name=operationId))
 
-        security_schemas = None
-        if 'ApiKeyAuth' in specification.security_schemas.keys():
-            security_schemas = specification.security_schemas['ApiKeyAuth']
-
-        body = specification.paths[0].operations[0].request_body
-
-        tool_desc = specification.paths[0].description
-        
-        rqP = OpenAPIFunctionToolGenerator._get_required_query_params(specification.paths[0].operations[0])
-        optP = OpenAPIFunctionToolGenerator._get_optional_query_params(specification.paths[0].operations[0])
-        
-        rqBodyParams = OpenAPIFunctionToolGenerator._get_required_body_params(body)
-        optBodyParams = OpenAPIFunctionToolGenerator._get_optional_body_params(body)
-
-        tool_func = OpenAPIFunctionToolGenerator._create_api_function(
-                                path = specification.paths[0].url,
-                                base_url = specification.servers[0].url,
-                                func_name = operationId,
-                                http_method = http_method,
-                                required_query_params = rqP,
-                                optional_query_params = optP,
-                                required_body_params = rqBodyParams,
-                                optional_body_params = optBodyParams,
-                                apikey_security = security_schemas
-                )
-
-        return tool_func
+        return tools
 
     @staticmethod
     def _create_api_function(
@@ -258,9 +229,9 @@ class OpenAPIFunctionToolGenerator:
 if __name__ == "__main__":
         
     # Create the weather function with specific requirements
-    get_weather_generated = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functool('weather_tool.yaml')
+    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('weather_tool.yaml')
     
-    createUser = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_func('create_user_tool.yaml')
+    # createUser = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_func('create_user_tool.yaml')
     
-    response = createUser(name = "Leo", job = "Consultant", salary = 20000)
-    print("response:\n",response)
+    print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in weather_tools])
+    print(weather_tools)
