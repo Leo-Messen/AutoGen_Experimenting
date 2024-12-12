@@ -4,9 +4,9 @@ import pprint
 from typing import Dict, Any, Callable
 from urllib.parse import urljoin
 from config import settings
-from openapi_parser.enumeration import BaseLocation
+from openapi_parser.enumeration import BaseLocation, DataType, ParameterLocation
 from openapi_parser.specification import Security, SecurityType
-from openapi_parser import parse, enumeration
+from openapi_parser import parse
 
 from requests.models import Request
 from autogen_core.components.tools import FunctionTool
@@ -15,14 +15,19 @@ class OpenAPIFunctionToolGenerator:
     @staticmethod
     def _get_query_params(operation, required: bool):
         queryParams = operation.parameters
-        params = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == required]
+        params = [(qp.name, qp.schema.type) for qp in queryParams if qp.location == ParameterLocation.QUERY and qp.required == required]
 
-        for i in range(len(params)):
-            if params[i][1].value == 'number':
-                params[i] = (params[i][0],float)
-            elif params[i][1].value == 'string':
-                params[i] = (params[i][0],str)
-        
+        for i in range(len(params)):                
+            match params[i][1]:
+                case DataType.NUMBER:
+                    params[i] = (params[i][0],float)
+                case DataType.STRING:
+                    params[i] = (params[i][0],str)
+                case DataType.INTEGER:
+                    params[i] = (params[i][0],int)
+                case DataType.BOOLEAN:
+                    params[i] = (params[i][0],bool)
+
         return params
     
     @staticmethod
@@ -32,17 +37,23 @@ class OpenAPIFunctionToolGenerator:
         
         body_properties = body.content[0].schema.properties
         required_properties = body.content[0].schema.required
+        
         if required == True:
             params = [(bp.name, bp.schema.type) for bp in body_properties if bp.name in required_properties]
         else:
             params = [(bp.name, bp.schema.type) for bp in body_properties if bp.name not in required_properties]
 
-        for i in range(len(required)):
-            if params[i][1].value == 'number':
-                params[i] = (params[i][0],float)
-            elif params[i][1].value == 'string':
-                params[i] = (params[i][0],str)
-        
+        for i in range(len(params)):                
+            match params[i][1]:
+                case DataType.NUMBER:
+                    params[i] = (params[i][0],float)
+                case DataType.STRING:
+                    params[i] = (params[i][0],str)
+                case DataType.INTEGER:
+                    params[i] = (params[i][0],int)
+                case DataType.BOOLEAN:
+                    params[i] = (params[i][0],bool)
+
         return params
 
     @staticmethod
