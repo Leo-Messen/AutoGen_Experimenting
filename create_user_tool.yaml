@@ -10,6 +10,20 @@ servers:
 
 paths:
   /api/users:
+    get:
+      operationId: list_users
+      description: Lists users
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+
+      responses:
+        "200":
+          description: Response
+
     post:
       operationId: create_user
       description: Creates a user
@@ -29,7 +43,6 @@ paths:
               required:
                 - name
                 - job
-
       responses:
         "201": # status code
           description: A JSON response containing attributes of the created user

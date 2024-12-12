@@ -113,6 +113,9 @@ paths:
         "200": # status code
           description: A JSON response containing attributes of the weather at the requested latitude and longitude
 
+security:
+  - ApiKeyAuth: []
+
 components:
   securitySchemes:
     ApiKeyAuth: # arbitrary name for the security scheme
