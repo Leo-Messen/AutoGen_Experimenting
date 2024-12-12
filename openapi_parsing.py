@@ -34,7 +34,7 @@ def get_optional_params(body):
     
     return optional
 
-specification = parse('create_user_tool.yaml')
+specification = parse('weather_tool.yaml')
 
 pprint.pp(specification)
 
@@ -48,11 +48,8 @@ operationId = specification.paths[0].operations[0].operation_id
 requiredParams = [qp.name for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == True] 
 optionalParams = [qp.name for qp in queryParams if qp.location == enumeration.ParameterLocation.QUERY and qp.required == False] 
 
-body = specification.paths[0].operations[0].request_body
-body_properties = body.content[0].schema.properties
-requiredBody = [p.name for p in body_properties if p.name in body.content[0].schema.required] 
+# body = specification.paths[0].operations[0].request_body
+# body_properties = body.content[0].schema.properties
+# requiredBody = [p.name for p in body_properties if p.name in body.content[0].schema.required] 
 
 description = specification.paths[0].description
-
-print(body_properties, get_required_params(body), get_optional_params(body), sep='\n')
-

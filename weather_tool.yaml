@@ -89,10 +89,29 @@ paths:
                           example: broken clouds
                           description: more detailed description of weather conditions
 
-  # /geo/1.0/direct:
-  #   get:
-  #     summary: Return the latitude and longitude of a named location
-  #     description: Return the latitude and longitude of a named location
+  /geo/1.0/direct:
+    get:
+      operationId: get_city_coordinates
+      summary: Return the latitude and longitude of a city
+      description: Return the latitude and longitude of a city
+
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: true
+          description: city name
+        - in: query
+          name: limit
+          schema:
+            type: number
+          required: false
+          description: number of locations in the api response
+
+      responses:
+        "200": # status code
+          description: A JSON response containing attributes of the weather at the requested latitude and longitude
 
 components:
   securitySchemes:

@@ -185,10 +185,11 @@ class OpenAPIFunctionToolGenerator:
             # Retrieve API key for this service
             apikey = settings.WEATHER_API_KEY
 
+            # Should error if it can't retrieve the API Key
+
         # Separate arguments into query parameters and request data
         query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
         body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
-        print("QB PARAMS:", query_params, body_params)
         # Construct full URL
         full_url = urljoin(base_url, path)
         
@@ -211,10 +212,7 @@ class OpenAPIFunctionToolGenerator:
 
                 elif key in body_params:
                     requestBodyParams[key] = supplied_args[key]
-                   
-
-            print("Bound_arguments: ", supplied_args)
-            
+                               
             if apikey_security:
                 if apikey_security.location == BaseLocation.QUERY:
                     # Retrive API KEY and set it as a default parameter
@@ -245,7 +243,6 @@ class OpenAPIFunctionToolGenerator:
         
         # Set function signature to help with tool use
         api_call_function.__signature__ = inspect.Signature(parameters)
-        print("Signature: ", api_call_function.__signature__)
         return api_call_function
 
     def _join_lists(l1: list, l2 : list) -> list:

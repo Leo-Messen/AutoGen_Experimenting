@@ -109,7 +109,8 @@ async def weather_main() -> None:
         system_message="""You have access to tools to retrieve weather data.
         Find the weather in the city specified in the context and report it.
         Use the correct units of measurement for temperature in the city specified.
-        Use TERMINATE at the end of your message when you have fulfilled your task.""",
+        Use TERMINATE at the end of your message when you have fulfilled your task,
+        Do NOT TERMINATE if there was a part of the user's request that you couldn't fulfill and hasn't been fulfilled by another agent.""",
     )
 
     create_user = AssistantAgent(
@@ -119,7 +120,8 @@ async def weather_main() -> None:
         description="An agent that has access to tools to create a new user",
         system_message="""You have access to tools to create a new user.
         Your job is to retrieve all the required information from the user to create a new user using the provided tools.
-        Use TERMINATE at the end of your message when you have created a new user.""",
+        Use TERMINATE at the end of your message when you have fulfilled your task,
+        Do NOT TERMINATE if there was a part of the user's request that you couldn't fulfill and hasn't been fulfilled by another agent.""",
     )
 
     # Define termination condition
@@ -132,7 +134,7 @@ async def weather_main() -> None:
 
     # Run the team and stream messages to the console
     # stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
-    stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
+    stream = agent_team.run_stream(task="What's the weather like in Sheffield today? Also, create a user called Leo with the job SE.")
     # stream = agent_team.run_stream(task="Hello! I am a user and I want you to create me a profile. My name is Leo and I am a Software Engineer")
     await Console(stream)
 
