@@ -63,3 +63,18 @@ paths:
                   createdAt:
                     type: string
                     description: created at date
+
+  /api/users/{user_id}:
+    get:
+      operationId: get_user
+      description: Gets a user
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        "200":
+          description: Response

@@ -37,7 +37,7 @@ class OpenAPIFunctionToolGenerator:
         
         body_properties = body.content[0].schema.properties
         required_properties = body.content[0].schema.required
-        
+
         if required == True:
             params = [(bp.name, bp.schema.type) for bp in body_properties if bp.name in required_properties]
         else:
@@ -211,9 +211,9 @@ class OpenAPIFunctionToolGenerator:
 if __name__ == "__main__":
         
     # Create the weather function with specific requirements
-    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('weather_tool.yaml')
+    # weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('weather_tool.yaml')
     
-    # user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('create_user_tool.yaml')
+    user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('create_user_tool.yaml')
     
-    # print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
-    # print(user_tools)
+    print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
+    print(user_tools)
