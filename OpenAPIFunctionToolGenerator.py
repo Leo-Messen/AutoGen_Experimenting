@@ -109,10 +109,10 @@ class OpenAPIFunctionToolGenerator:
                                         http_method = http_method,
                                         required_query_params = rqQueryParams,
                                         optional_query_params = optQueryParams,
-                                        required_body_params = rqBodyParams,
-                                        optional_body_params = optBodyParams,
                                         required_path_params = rqPathParams,
                                         optional_path_params = optPathParams,
+                                        required_body_params = rqBodyParams,
+                                        optional_body_params = optBodyParams,
                                         apikey_security = security_schemas
                         )
 
@@ -129,6 +129,8 @@ class OpenAPIFunctionToolGenerator:
         apikey_security : Security = None,
         required_query_params: list = [], 
         optional_query_params: list = [],
+        required_path_params: list = [], 
+        optional_path_params: list = [],
         required_body_params: list = [], 
         optional_body_params: list = [],
         headers : Dict = {}
@@ -152,8 +154,10 @@ class OpenAPIFunctionToolGenerator:
         # Create a signature with all possible parameters
         parameters = (
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_query_params] +
+            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_path_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_body_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_query_params] +
+            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_path_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_body_params]
         )
 
