@@ -31,6 +31,24 @@ class OpenAPIFunctionToolGenerator:
         return params
     
     @staticmethod
+    def _get_path_params(operation, required: bool):
+        pathParams = operation.parameters
+        params = [(pp.name, pp.schema.type) for pp in pathParams if pp.location == ParameterLocation.HEADER and pp.required == required]
+
+        for i in range(len(params)):                
+            match params[i][1]:
+                case DataType.NUMBER:
+                    params[i] = (params[i][0],float)
+                case DataType.STRING:
+                    params[i] = (params[i][0],str)
+                case DataType.INTEGER:
+                    params[i] = (params[i][0],int)
+                case DataType.BOOLEAN:
+                    params[i] = (params[i][0],bool)
+
+        return params
+    
+    @staticmethod
     def _get_body_params(body, required: bool):
         if body == None:
             return []
@@ -75,21 +93,26 @@ class OpenAPIFunctionToolGenerator:
 
                 tool_desc = operation.description
             
-                rqP = OpenAPIFunctionToolGenerator._get_query_params(operation, True)
-                optP = OpenAPIFunctionToolGenerator._get_query_params(operation, False)
+                rqQueryParams = OpenAPIFunctionToolGenerator._get_query_params(operation, True)
+                optQueryParams = OpenAPIFunctionToolGenerator._get_query_params(operation, False)
                 
                 rqBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, True)
                 optBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, False)
+
+                rqPathParams = OpenAPIFunctionToolGenerator._get_path_params(operation, True)
+                optPathParams = OpenAPIFunctionToolGenerator._get_path_params(operation, False)
 
                 tool_func = OpenAPIFunctionToolGenerator._create_api_function(
                                         path = path.url,
                                         base_url = specification.servers[0].url,
                                         func_name = operationId,
                                         http_method = http_method,
-                                        required_query_params = rqP,
-                                        optional_query_params = optP,
+                                        required_query_params = rqQueryParams,
+                                        optional_query_params = optQueryParams,
                                         required_body_params = rqBodyParams,
                                         optional_body_params = optBodyParams,
+                                        required_path_params = rqPathParams,
+                                        optional_path_params = optPathParams,
                                         apikey_security = security_schemas
                         )
 
