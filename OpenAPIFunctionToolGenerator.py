@@ -31,9 +31,9 @@ class OpenAPIFunctionToolGenerator:
         return params
     
     @staticmethod
-    def _get_path_params(operation, required: bool):
+    def _get_path_params(operation):
         pathParams = operation.parameters
-        params = [(pp.name, pp.schema.type) for pp in pathParams if pp.location == ParameterLocation.HEADER and pp.required == required]
+        params = [(pp.name, pp.schema.type) for pp in pathParams if pp.location == ParameterLocation.PATH]
 
         for i in range(len(params)):                
             match params[i][1]:
@@ -99,8 +99,7 @@ class OpenAPIFunctionToolGenerator:
                 rqBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, True)
                 optBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, False)
 
-                rqPathParams = OpenAPIFunctionToolGenerator._get_path_params(operation, True)
-                optPathParams = OpenAPIFunctionToolGenerator._get_path_params(operation, False)
+                pathParams = OpenAPIFunctionToolGenerator._get_path_params(operation)
 
                 tool_func = OpenAPIFunctionToolGenerator._create_api_function(
                                         path = path.url,
@@ -109,8 +108,7 @@ class OpenAPIFunctionToolGenerator:
                                         http_method = http_method,
                                         required_query_params = rqQueryParams,
                                         optional_query_params = optQueryParams,
-                                        required_path_params = rqPathParams,
-                                        optional_path_params = optPathParams,
+                                        path_params = pathParams,
                                         required_body_params = rqBodyParams,
                                         optional_body_params = optBodyParams,
                                         apikey_security = security_schemas
@@ -129,8 +127,7 @@ class OpenAPIFunctionToolGenerator:
         apikey_security : Security = None,
         required_query_params: list = [], 
         optional_query_params: list = [],
-        required_path_params: list = [], 
-        optional_path_params: list = [],
+        path_params: list = [], 
         required_body_params: list = [], 
         optional_body_params: list = [],
         headers : Dict = {}
@@ -154,10 +151,9 @@ class OpenAPIFunctionToolGenerator:
         # Create a signature with all possible parameters
         parameters = (
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_query_params] +
-            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_path_params] +
+            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in path_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_body_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_query_params] +
-            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_path_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_body_params]
         )
 
