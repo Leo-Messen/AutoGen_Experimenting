@@ -124,17 +124,28 @@ async def weather_main() -> None:
         Do NOT TERMINATE if there was a part of the user's request that you couldn't fulfill and hasn't been fulfilled by another agent.""",
     )
 
+    tool_test_agent = AssistantAgent(
+        name="tool_test_agent",
+        model_client=model,
+        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("create_user_tool.yaml"),
+        description="An agent that has access to tools",
+        system_message="""You are a tool testing agent.
+        Your job is to test all the tools provided to you with suitable dummy values.
+        Pleae test each tool, one at a time.
+        Use TERMINATE when you have tested all tools at your disposal.""",
+    )
+
     # Define termination condition
     termination = TextMentionTermination("TERMINATE") | MaxMessageTermination(max_messages=50)
 
     # Define a team
     # agent_team = Swarm([travel_agent, guide_agent, weather_agent], termination_condition=termination)
-    agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
-    # agent_team = RoundRobinGroupChat([create_user], termination_condition=termination)
+    # agent_team = RoundRobinGroupChat([solo_weather_agent], termination_condition=termination)
+    agent_team = RoundRobinGroupChat([tool_test_agent], termination_condition=termination)
 
     # Run the team and stream messages to the console
     # stream = agent_team.run_stream(task="I'm visiting London today and want to do some shopping and sightseeing. Do you have any suggestions for me?")
-    stream = agent_team.run_stream(task="What's the weather like in Sheffield today?")
+    stream = agent_team.run_stream(task="Please test the tools provided to you.")
     # stream = agent_team.run_stream(task="Hello! I am a user and I want you to create me a profile. My name is Leo and I am a Software Engineer")
     await Console(stream)
 
