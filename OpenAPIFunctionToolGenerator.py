@@ -166,9 +166,7 @@ class OpenAPIFunctionToolGenerator:
         # Separate arguments into query parameters and request data
         query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
         body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
-        # Construct full URL
-        full_url = urljoin(base_url, path)
-
+        
         # The actual API call function to be returned
         def api_call_function(**kwargs):
             # Validate required parameters are present
@@ -188,11 +186,15 @@ class OpenAPIFunctionToolGenerator:
 
                 elif key in body_params:
                     requestBodyParams[key] = supplied_args[key]
+            
+            # Construct full URL
+            full_url = urljoin(base_url, path)
+
             # Add path params
-            for param in path_params:
+            for param, _ in path_params:
                 # Replace path param in url with value
                 full_url = full_url.replace("{"+param+"}", str(supplied_args[param])) 
-            print(full_url)                 
+
             if apikey_security:
                 if apikey_security.location == BaseLocation.QUERY:
                     # Retrive API KEY and set it as a default parameter
@@ -244,3 +246,6 @@ if __name__ == "__main__":
     
     # print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
     # print(user_tools)
+
+    output = user_tools[2]._func(user_id = 3)
+    print(output)
