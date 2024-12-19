@@ -9,7 +9,7 @@ from openapi_parser.specification import Security, SecurityType
 from openapi_parser import parse
 
 from requests.models import Request
-from autogen_core.components.tools import FunctionTool
+from autogen_core.tools import FunctionTool
 
 class OpenAPIFunctionToolGenerator:
     @staticmethod

@@ -1,9 +1,10 @@
 from autogen_agentchat.agents import AssistantAgent
-from autogen_agentchat.task import Console, TextMentionTermination, MaxMessageTermination
+from autogen_agentchat.ui import Console
+from autogen_agentchat.conditions import TextMentionTermination, MaxMessageTermination
 from autogen_agentchat.teams import RoundRobinGroupChat, Swarm
-from autogen_ext.models import OpenAIChatCompletionClient
-from autogen_core.components.tools import FunctionTool
-from autogen_core.base import CancellationToken
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+from autogen_core.tools import FunctionTool
+from autogen_core import CancellationToken
 
 import asyncio
 import requests

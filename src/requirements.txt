@@ -5,9 +5,9 @@ annotated-types==0.7.0
 anyio==4.6.2.post1
 asyncio-atexit==1.0.1
 attrs==24.2.0
-autogen-agentchat==0.4.0.dev8
-autogen-core==0.4.0.dev8
-autogen-ext==0.4.0.dev8
+autogen-agentchat==0.4.0.dev11
+autogen-core==0.4.0.dev11
+autogen-ext==0.4.0.dev11
 certifi==2024.8.30
 charset-normalizer==3.4.0
 Deprecated==1.2.15
