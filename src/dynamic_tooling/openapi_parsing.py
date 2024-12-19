@@ -34,7 +34,7 @@ def get_optional_params(body):
     
     return optional
 
-specification = parse('create_user_tool.yaml')
+specification = parse('tool_specs/create_user_tool.yaml')
 
 pprint.pp(specification)
 

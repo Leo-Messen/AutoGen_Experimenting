@@ -49,7 +49,7 @@ async def weather_main() -> None:
     # get_weather_tool = FunctionTool(get_weather,
                                 # description="Receives latitude and longitude coordinates, and gets the current weather at that location.")
     
-    get_weather_dynamic_tool = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('weather_tool.yaml')
+    get_weather_dynamic_tool = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
     
     get_weather_from_city_tool = FunctionTool(get_weather_from_city,
                                 description="Receives a city name, and gets the current weather at that location.")
@@ -65,7 +65,7 @@ async def weather_main() -> None:
     weather_agent = AssistantAgent(
         name="weather_agent",
         model_client=model,
-        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("weather_tool.yaml"),
+        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("tool_specs/weather_tool.yaml"),
         description="An agent that has access to tools that can get the current weather conditions in a specific location.",
         system_message="""You have access to tools to retrieve weather data.
         Find the weather in the city specified in the context and report it.
@@ -104,7 +104,7 @@ async def weather_main() -> None:
     solo_weather_agent = AssistantAgent(
         name="weather_agent",
         model_client=model,
-        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("weather_tool.yaml"),
+        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("tool_specs/weather_tool.yaml"),
         description="An agent that has access to tools that can get the current weather conditions in a specific location.",
         system_message="""You have access to tools to retrieve weather data.
         Find the weather in the city specified in the context and report it.
@@ -116,7 +116,7 @@ async def weather_main() -> None:
     create_user = AssistantAgent(
         name="create_user_agent",
         model_client=model,
-        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("create_user_tool.yaml"),
+        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("tool_specs/create_user_tool.yaml"),
         description="An agent that has access to tools to create a new user",
         system_message="""You have access to tools to create a new user.
         Your job is to retrieve all the required information from the user to create a new user using the provided tools.
@@ -127,7 +127,7 @@ async def weather_main() -> None:
     tool_test_agent = AssistantAgent(
         name="tool_test_agent",
         model_client=model,
-        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("create_user_tool.yaml"),
+        tools=OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools("tool_specs/create_user_tool.yaml"),
         description="An agent that has access to tools",
         system_message="""You are a tool testing agent.
         Your job is to test all the tools provided to you with suitable dummy values.
