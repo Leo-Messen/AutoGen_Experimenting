@@ -240,9 +240,9 @@ class OpenAPIFunctionToolGenerator:
 if __name__ == "__main__":
         
     # Create the weather function with specific requirements
-    # weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('weather_tool.yaml')
+    # weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
     
-    user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('create_user_tool.yaml')
+    user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
     
     # print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
     # print(user_tools)
