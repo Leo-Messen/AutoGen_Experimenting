@@ -1,0 +1,33 @@
+team:
+  type: RoundRobinGroupChat
+  max_messages: 20
+  agents:
+    - name: location_agent
+      description: gets the coordinates of a city mentioned by the user
+      system_message: Get the coordinates of a city mentioned in the user input using the tools provided
+      tools:
+        - weather_tools
+
+    - name: weather_agent
+      description: gets the weather at a city mentioned by the user
+      system_message: Tell me about the weather. Always use the weather tool provided and use the coordinates provided by the location_agent in the user input.
+      tools:
+        - weather_tools
+
+    - name: user_agent
+      description: interacts with the user
+      system_message: Give the user a nice greeting and summarise the information provided by the weather_agent. End your message with TERMINATE
+# team:
+#   type: RoundRobinGroupChat
+# team:
+#   type: SelectorGroupChat
+
+# team:
+#   type: Swarm
+#   handoffs:
+#     weather_agent:
+#       - writer_agent
+#       - editor_agent
+#     writer_agent:
+#       - chief_editor_agent
+#       - holiday_booking_agent
