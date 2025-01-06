@@ -75,8 +75,8 @@ class OpenAPIFunctionToolGenerator:
         return params
 
     @staticmethod
-    def openAPI_yaml_spec_to_functools(path) -> FunctionTool:
-        tools = []
+    def openAPI_yaml_spec_to_functools(path, tool_names = None) -> FunctionTool:
+        functools = []
 
         specification = parse(path)
 
@@ -86,8 +86,13 @@ class OpenAPIFunctionToolGenerator:
 
         for path in specification.paths:
             for operation in path.operations:
-                http_method = operation.method.value
                 operationId = operation.operation_id
+                print(operationId)
+                if tool_names != None and operationId not in tool_names:
+                    print("tool not in use")
+                    continue
+                
+                http_method = operation.method.value
 
                 body = operation.request_body
 
@@ -114,9 +119,9 @@ class OpenAPIFunctionToolGenerator:
                                         apikey_security = security_schemas
                         )
 
-                tools.append(FunctionTool(tool_func, tool_desc, name=operationId))
+                functools.append(FunctionTool(tool_func, tool_desc, name=operationId))
 
-        return tools
+        return functools
 
     @staticmethod
     def _create_api_function(
