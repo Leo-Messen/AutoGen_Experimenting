@@ -11,6 +11,8 @@ team:
         weather_tools:
           - get_weather
           - get_city_coordinates
+        city_tools:
+          - travel_guide_tool
 
     - name: create_user_agent
       description: An agent that has access to tools to create a new user
@@ -18,7 +20,7 @@ team:
         Your job is to retrieve all the required information from the user to create a new user using the provided tools.
       tools:
         create_user_tools:
-          - create_user
+          - USE_ALL_TOOLS
 # team:
 #   type: RoundRobinGroupChat
 # team:

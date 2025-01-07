@@ -21,18 +21,23 @@ class MyAgent(BaseAgent):
 
 
 async def run():
-    runtime = SingleThreadedAgentRuntime()
-    await MyAgent.register(runtime, "my_agent", lambda: MyAgent())
-    agent_id = AgentId("my_agent", "default")
-    runtime.start()  # Start processing messages in the background.
-    await runtime.send_message(MyMessageType("Hello, World!"), agent_id)
-    await runtime.stop()  # Stop processing messages in the background.
+    # runtime = SingleThreadedAgentRuntime()
+    # await MyAgent.register(runtime, "my_agent", lambda: MyAgent())
+    # agent_id = AgentId("my_agent", "default")
+    # runtime.start()  # Start processing messages in the background.
+    # await runtime.send_message(MyMessageType("Hello, World!"), agent_id)
+    # await runtime.stop()  # Stop processing messages in the background.
     
     agent_team = AgentGenerator.generate_agents('agent_team_specs/agent_spec2.yaml')
 
+    # stream = await agent_team.run(task="Hello from Doncaster!")
+
+    # print(stream)
+    
     stream = agent_team.run_stream(task="Hello from Doncaster!")
 
-    await Console(stream)
+    async for m in stream:
+        print(m)
 
 if __name__ == "__main__":
     asyncio.run(run())

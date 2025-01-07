@@ -87,9 +87,7 @@ class OpenAPIFunctionToolGenerator:
         for path in specification.paths:
             for operation in path.operations:
                 operationId = operation.operation_id
-                print(operationId)
                 if tool_names != None and operationId not in tool_names:
-                    print("tool not in use")
                     continue
                 
                 http_method = operation.method.value

@@ -19,22 +19,30 @@ class AgentGenerator:
                 temperature=settings.MODEL_TEMPERATURE
             )
     
-        with open(path) as config_file_str:
-            team_spec = yaml.load(config_file_str, Loader=yaml.Loader)
-            print(team_spec)
+        with open(path) as file:
+            team_spec = yaml.load(file, Loader=yaml.Loader)
+
             agents = []
-            for agent in team_spec['team']['agents']:
+
+            for agent_spec in team_spec['team']['agents']:
                 agent_tools = []
 
-                if 'tools' in agent.keys():
-                    for tool in agent['tools']:
-                        agent_tools += AgentGenerator._get_tools(tool)
-                agents.append(AssistantAgent(
-                    agent['name'],
-                    system_message=agent['system_message'],
+                if 'tools' in agent_spec.keys():
+                    for tool_spec in agent_spec['tools'].keys():
+                        tool_names = agent_spec['tools'][tool_spec]
+                        if tool_names[0] == 'USE_ALL_TOOLS':
+                            agent_tools += AgentGenerator._get_tools(tool_spec)
+                        else:
+                            agent_tools += AgentGenerator._get_tools(tool_spec, tool_names)
+                agent = AssistantAgent(
+                    agent_spec['name'],
+                    system_message=agent_spec['system_message'],
                     model_client=model,
                     tools=agent_tools
-                ))
+                )
+
+                agents.append(agent)
+
         
         termmination_condition = TextMentionTermination("TERMINATE") 
         if 'max_messages' in team_spec['team'].keys():
@@ -49,9 +57,9 @@ class AgentGenerator:
         return agent_team
     
     @staticmethod
-    def _get_tools(tool_name):
-        if tool_name == 'weather_tools':
-           return OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
-        elif tool_name == 'create_user_tool':
-           return OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
+    def _get_tools(tool_spec, tool_names = None):
+        if tool_spec == 'weather_tools':
+           return OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml', tool_names)
+        elif tool_spec == 'create_user_tool':
+           return OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml', tool_names)
 

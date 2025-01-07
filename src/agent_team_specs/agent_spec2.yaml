@@ -6,13 +6,15 @@ team:
       description: gets the coordinates of a city mentioned by the user
       system_message: Get the coordinates of a city mentioned in the user input using the tools provided
       tools:
-        - weather_tools
+        weather_tools:
+          - get_city_coordinates
 
     - name: weather_agent
       description: gets the weather at a city mentioned by the user
       system_message: Tell me about the weather. Always use the weather tool provided and use the coordinates provided by the location_agent in the user input.
       tools:
-        - weather_tools
+        weather_tools:
+          - get_weather
 
     - name: user_agent
       description: interacts with the user
