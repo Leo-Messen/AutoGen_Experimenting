@@ -36,8 +36,10 @@ async def run():
     
     stream = agent_team.run_stream(task="Hello from Doncaster!")
 
-    async for m in stream:
-        print(m)
+    # async for m in stream:
+    #     print(m)
+    
+    await Console(stream)
 
 if __name__ == "__main__":
     asyncio.run(run())

@@ -11,6 +11,8 @@ from openapi_parser import parse
 from requests.models import Request
 from autogen_core.tools import FunctionTool
 
+import typing
+
 class OpenAPIFunctionToolGenerator:
     @staticmethod
     def _get_query_params(operation, required: bool):
@@ -228,6 +230,12 @@ class OpenAPIFunctionToolGenerator:
         
         # Set function signature to help with tool use
         api_call_function.__signature__ = inspect.Signature(parameters)
+
+        annotations = {}
+        for var in parameters:
+            annotations[var.name] = var.annotation
+        api_call_function.__annotations__ = annotations
+
         return api_call_function
 
     def _join_lists(l1: list, l2 : list) -> list:
@@ -241,14 +249,14 @@ class OpenAPIFunctionToolGenerator:
             return l1 + l2
 # Demonstration
 if __name__ == "__main__":
-        
+
     # Create the weather function with specific requirements
-    # weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
+    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
     
-    user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
+    # user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
     
     # print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
     # print(user_tools)
 
-    output = user_tools[2]._func(user_id = 3)
-    print(output)
+    # output = user_tools[2]._func(user_id = 3)
+    # print(output)

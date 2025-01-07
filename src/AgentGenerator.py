@@ -63,3 +63,7 @@ class AgentGenerator:
         elif tool_spec == 'create_user_tool':
            return OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml', tool_names)
 
+# Demonstration
+if __name__ == "__main__":
+        
+    team = AgentGenerator.generate_agents('agent_team_specs/agent_spec2.yaml')
