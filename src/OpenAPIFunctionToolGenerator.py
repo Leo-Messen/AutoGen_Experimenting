@@ -195,6 +195,8 @@ class OpenAPIFunctionToolGenerator:
         token_security = None
         if 'oAuth2ClientCredentials' in security_schemas.keys():
             token_security = security_schemas['oAuth2ClientCredentials']
+
+            # Get client credentials from somewhere
             client_id = settings.MS_CLIENT_ID
             client_secret = settings.MS_CLIENT_SECRET
 
