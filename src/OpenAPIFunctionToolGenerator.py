@@ -101,6 +101,13 @@ class OpenAPIFunctionToolGenerator:
         specification = parse(path)
 
         security_schemas = specification.security_schemas
+        
+        global_security = {}
+        if len(specification.security) > 0:
+            # Just assuming only one security type for now
+            for key in specification.security[0].keys():
+                if key in security_schemas.keys():
+                    global_security[key] = security_schemas[key]
 
         for path in specification.paths:
             for operation in path.operations:
@@ -125,6 +132,16 @@ class OpenAPIFunctionToolGenerator:
 
                 pathParams = OpenAPIFunctionToolGenerator._get_path_params(operation)
 
+                # check for operation level security
+                security = {}
+                if len(operation.security) > 0:
+                    for key in operation.security[0].keys():
+                        if key in security_schemas.keys():
+                            security[key] = security_schemas[key]
+                # if no operation level security use global security
+                else:
+                    security = global_security
+
                 tool_func = OpenAPIFunctionToolGenerator._create_api_function(
                                         path = path.url,
                                         base_url = specification.servers[0].url,
@@ -137,7 +154,7 @@ class OpenAPIFunctionToolGenerator:
                                         optional_body_params = optBodyParams,
                                         required_header_params=rqHeaderParams,
                                         optional_header_params=optHeaderParams,
-                                        security_schemas = security_schemas
+                                        security_schemas = security
                         )
 
                 functools.append(FunctionTool(tool_func, tool_desc, name=operationId))
