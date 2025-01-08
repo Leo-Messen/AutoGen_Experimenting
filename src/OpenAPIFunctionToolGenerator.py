@@ -192,7 +192,15 @@ class OpenAPIFunctionToolGenerator:
             apikey = settings.WEATHER_API_KEY
 
             # Should error if it can't retrieve the API Key
-    
+        token_security = None
+        if 'oAuth2ClientCredentials' in security_schemas.keys():
+            token_security = security_schemas['oAuth2ClientCredentials']
+            client_id = settings.MS_CLIENT_ID
+            client_secret = settings.MS_CLIENT_SECRET
+
+            # Trigger some code to get auth token using client credentials flow
+            token = settings.MS_TOKEN
+
         # Separate arguments into query parameters and request data
         query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
         body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
@@ -223,7 +231,7 @@ class OpenAPIFunctionToolGenerator:
                     requestHeaderParams[key] = supplied_args[key]
             
             # Construct full URL
-            full_url = urljoin(base_url, path)
+            full_url = base_url.rstrip("/") + path
 
             # Add path params
             for param, _ in path_params:
@@ -238,8 +246,10 @@ class OpenAPIFunctionToolGenerator:
                 elif apikey_security.location == BaseLocation.HEADER:
                     # Retrieve api key and add it to headers
                     requestHeaderParams[apikey_security.name] = apikey
-
             
+            if token_security:
+                requestHeaderParams['Authorization'] = "Bearer " + token
+
             # Determine HTTP method dynamically
             if http_method.lower() == 'get':
                 try:
@@ -282,7 +292,9 @@ class OpenAPIFunctionToolGenerator:
 if __name__ == "__main__":
 
     # Create the weather function with specific requirements
-    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
+    # weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/wweather_tool.yaml')
+
+    ms_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/ms_graph_api.yaml')
     
     # user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
     
@@ -291,3 +303,6 @@ if __name__ == "__main__":
 
     # output = user_tools[2]._func(user_id = 3)
     # print(output)
+
+    # ms_out = ms_tools[0]._func()
+    # print(ms_out)
