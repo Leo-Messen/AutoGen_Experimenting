@@ -100,9 +100,7 @@ class OpenAPIFunctionToolGenerator:
 
         specification = parse(path)
 
-        security_schemas = None
-        if 'ApiKeyAuth' in specification.security_schemas.keys():
-            security_schemas = specification.security_schemas['ApiKeyAuth']
+        security_schemas = specification.security_schemas
 
         for path in specification.paths:
             for operation in path.operations:
@@ -139,7 +137,7 @@ class OpenAPIFunctionToolGenerator:
                                         optional_body_params = optBodyParams,
                                         required_header_params=rqHeaderParams,
                                         optional_header_params=optHeaderParams,
-                                        apikey_security = security_schemas
+                                        security_schemas = security_schemas
                         )
 
                 functools.append(FunctionTool(tool_func, tool_desc, name=operationId))
@@ -152,8 +150,7 @@ class OpenAPIFunctionToolGenerator:
         base_url : str,
         path: str, 
         http_method: str, 
-        apikey_security : Security = None,
-        token_security : Security = None,
+        security_schemas : dict = {},
         required_query_params: list = [], 
         optional_query_params: list = [],
         path_params: list = [], 
@@ -187,13 +184,15 @@ class OpenAPIFunctionToolGenerator:
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_body_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_header_params]
         )
-
-        if apikey_security:
+        
+        apikey_security = None
+        if 'ApiKeyAuth' in security_schemas.keys():
             # Retrieve API key for this service
+            apikey_security = security_schemas['ApiKeyAuth']
             apikey = settings.WEATHER_API_KEY
 
             # Should error if it can't retrieve the API Key
-
+    
         # Separate arguments into query parameters and request data
         query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
         body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
@@ -239,9 +238,7 @@ class OpenAPIFunctionToolGenerator:
                 elif apikey_security.location == BaseLocation.HEADER:
                     # Retrieve api key and add it to headers
                     requestHeaderParams[apikey_security.name] = apikey
-            
-            if token_security:
-                pass
+
             
             # Determine HTTP method dynamically
             if http_method.lower() == 'get':
