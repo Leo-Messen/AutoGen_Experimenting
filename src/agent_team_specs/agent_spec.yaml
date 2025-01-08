@@ -1,0 +1,37 @@
+team:
+  type: RoundRobinGroupChat
+  max_messages: 20
+  agents:
+    - name: weather_agent
+      description: An agent that has access to tools that can get the current weather conditions in a specific location.
+      system_message: You have access to tools to retrieve weather data.
+        Find the weather in the city specified in the context and report it.
+        Use the correct units of measurement for temperature in the city specified.
+      tools:
+        weather_tools:
+          - get_weather
+          - get_city_coordinates
+        city_tools:
+          - travel_guide_tool
+
+    - name: create_user_agent
+      description: An agent that has access to tools to create a new user
+      system_message: You have access to tools to create a new user.
+        Your job is to retrieve all the required information from the user to create a new user using the provided tools.
+      tools:
+        create_user_tools:
+          - USE_ALL_TOOLS
+# team:
+#   type: RoundRobinGroupChat
+# team:
+#   type: SelectorGroupChat
+
+# team:
+#   type: Swarm
+#   handoffs:
+#     weather_agent:
+#       - writer_agent
+#       - editor_agent
+#     writer_agent:
+#       - chief_editor_agent
+#       - holiday_booking_agent
