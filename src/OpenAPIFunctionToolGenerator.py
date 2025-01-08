@@ -77,6 +77,24 @@ class OpenAPIFunctionToolGenerator:
         return params
 
     @staticmethod
+    def _get_header_params(operation, required: bool):
+        headerParams = operation.parameters
+        params = [(hp.name, hp.schema.type) for hp in headerParams if hp.location == ParameterLocation.HEADER and hp.required == required]
+
+        for i in range(len(params)):                
+            match params[i][1]:
+                case DataType.NUMBER:
+                    params[i] = (params[i][0],float)
+                case DataType.STRING:
+                    params[i] = (params[i][0],str)
+                case DataType.INTEGER:
+                    params[i] = (params[i][0],int)
+                case DataType.BOOLEAN:
+                    params[i] = (params[i][0],bool)
+
+        return params
+
+    @staticmethod
     def openAPI_yaml_spec_to_functools(path, tool_names = None) -> FunctionTool:
         functools = []
 
@@ -104,6 +122,9 @@ class OpenAPIFunctionToolGenerator:
                 rqBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, True)
                 optBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, False)
 
+                rqHeaderParams = OpenAPIFunctionToolGenerator._get_header_params(operation, True)
+                optHeaderParams = OpenAPIFunctionToolGenerator._get_header_params(operation, False)
+
                 pathParams = OpenAPIFunctionToolGenerator._get_path_params(operation)
 
                 tool_func = OpenAPIFunctionToolGenerator._create_api_function(
@@ -116,6 +137,8 @@ class OpenAPIFunctionToolGenerator:
                                         path_params = pathParams,
                                         required_body_params = rqBodyParams,
                                         optional_body_params = optBodyParams,
+                                        required_header_params=rqHeaderParams,
+                                        optional_header_params=optHeaderParams,
                                         apikey_security = security_schemas
                         )
 
@@ -130,12 +153,15 @@ class OpenAPIFunctionToolGenerator:
         path: str, 
         http_method: str, 
         apikey_security : Security = None,
+        token_security : Security = None,
         required_query_params: list = [], 
         optional_query_params: list = [],
         path_params: list = [], 
         required_body_params: list = [], 
         optional_body_params: list = [],
-        headers : Dict = {}
+        required_header_params: list = [], 
+        optional_header_params: list = []
+        
         ) -> Callable:
         """
         Dynamically create a function for making API calls.
@@ -150,16 +176,16 @@ class OpenAPIFunctionToolGenerator:
         Returns:
             Callable: A dynamically created function for the API endpoint
         """
-        # Default to empty lists if not provided
-        headers = {}
         
         # Create a signature with all possible parameters
         parameters = (
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_query_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in path_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_body_params] +
+            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation = param_type) for param, param_type in required_header_params] +
             [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_query_params] +
-            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_body_params]
+            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_body_params] +
+            [inspect.Parameter(param, inspect.Parameter.KEYWORD_ONLY, annotation= param_type,default=None) for param, param_type in optional_header_params]
         )
 
         if apikey_security:
@@ -171,7 +197,8 @@ class OpenAPIFunctionToolGenerator:
         # Separate arguments into query parameters and request data
         query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
         body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
-        
+        header_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_header_params, optional_header_params)]
+
         # The actual API call function to be returned
         def api_call_function(**kwargs):
             # Validate required parameters are present
@@ -184,6 +211,7 @@ class OpenAPIFunctionToolGenerator:
 
             requestQueryParams = {}
             requestBodyParams = {}
+            requestHeaderParams = {}
 
             for key in supplied_args.keys():
                 if key in query_params:
@@ -191,6 +219,9 @@ class OpenAPIFunctionToolGenerator:
 
                 elif key in body_params:
                     requestBodyParams[key] = supplied_args[key]
+                
+                elif key in header_params:
+                    requestHeaderParams[key] = supplied_args[key]
             
             # Construct full URL
             full_url = urljoin(base_url, path)
@@ -207,12 +238,15 @@ class OpenAPIFunctionToolGenerator:
                 
                 elif apikey_security.location == BaseLocation.HEADER:
                     # Retrieve api key and add it to headers
-                    headers[apikey_security.name] = apikey
+                    requestHeaderParams[apikey_security.name] = apikey
+            
+            if token_security:
+                pass
             
             # Determine HTTP method dynamically
             if http_method.lower() == 'get':
                 try:
-                    response = requests.get(full_url, params=requestQueryParams, headers = headers)
+                    response = requests.get(full_url, params=requestQueryParams, headers = requestHeaderParams)
                     response.raise_for_status()  # Raise an exception for bad responses
                     return response.json()
                 except requests.RequestException as e:
@@ -221,7 +255,7 @@ class OpenAPIFunctionToolGenerator:
 
             elif http_method.lower() == "post":
                 try:
-                    response = requests.post(full_url, params=requestQueryParams, headers = headers, data=requestBodyParams)
+                    response = requests.post(full_url, params=requestQueryParams, headers = requestHeaderParams, data=requestBodyParams)
                     response.raise_for_status()  # Raise an exception for bad responses
                     return response.json()
                 except requests.RequestException as e:
@@ -251,7 +285,7 @@ class OpenAPIFunctionToolGenerator:
 if __name__ == "__main__":
 
     # Create the weather function with specific requirements
-    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
+    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
     
     # user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
     
