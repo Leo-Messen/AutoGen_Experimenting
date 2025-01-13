@@ -5,7 +5,7 @@ from typing import Dict, Any, Callable
 from urllib.parse import urljoin
 from config import settings
 from openapi_parser.enumeration import BaseLocation, DataType, ParameterLocation
-from openapi_parser.specification import Security, SecurityType
+from openapi_parser.specification import Security, SecurityType, OAuthFlowType
 from openapi_parser import parse
 
 from requests.models import Request
@@ -101,6 +101,13 @@ class OpenAPIFunctionToolGenerator:
         specification = parse(path)
 
         security_schemas = specification.security_schemas
+        
+        global_security = []
+        if len(specification.security) > 0:
+            # Just assuming only one security type for now
+            for key in specification.security[0].keys():
+                if key in security_schemas.keys():
+                    global_security.append(security_schemas[key])
 
         for path in specification.paths:
             for operation in path.operations:
@@ -125,6 +132,16 @@ class OpenAPIFunctionToolGenerator:
 
                 pathParams = OpenAPIFunctionToolGenerator._get_path_params(operation)
 
+                # check for operation level security
+                security = []
+                if len(operation.security) > 0:
+                    for key in operation.security[0].keys():
+                        if key in security_schemas.keys():
+                            security.append(security_schemas[key])
+                # if no operation level security use global security
+                else:
+                    security = global_security
+
                 tool_func = OpenAPIFunctionToolGenerator._create_api_function(
                                         path = path.url,
                                         base_url = specification.servers[0].url,
@@ -137,7 +154,7 @@ class OpenAPIFunctionToolGenerator:
                                         optional_body_params = optBodyParams,
                                         required_header_params=rqHeaderParams,
                                         optional_header_params=optHeaderParams,
-                                        security_schemas = security_schemas
+                                        security_schemas = security
                         )
 
                 functools.append(FunctionTool(tool_func, tool_desc, name=operationId))
@@ -150,7 +167,7 @@ class OpenAPIFunctionToolGenerator:
         base_url : str,
         path: str, 
         http_method: str, 
-        security_schemas : dict = {},
+        security_schemas : list[Security] = [],
         required_query_params: list = [], 
         optional_query_params: list = [],
         path_params: list = [], 
@@ -186,23 +203,25 @@ class OpenAPIFunctionToolGenerator:
         )
         
         apikey_security = None
-        if 'ApiKeyAuth' in security_schemas.keys():
-            # Retrieve API key for this service
-            apikey_security = security_schemas['ApiKeyAuth']
-            apikey = settings.WEATHER_API_KEY
-
-            # Should error if it can't retrieve the API Key
         token_security = None
-        if 'oAuth2ClientCredentials' in security_schemas.keys():
-            token_security = security_schemas['oAuth2ClientCredentials']
 
-            # Get client credentials from somewhere
-            client_id = settings.MS_CLIENT_ID
-            client_secret = settings.MS_CLIENT_SECRET
+        for security_object in security_schemas:
+            if security_object.type == SecurityType.API_KEY:
+                # Retrieve API key for this service
+                apikey_security = security_object
+                apikey = settings.WEATHER_API_KEY
 
-            # Trigger some code to get auth token using client credentials flow
-            token = settings.MS_TOKEN
+                # Should error if it can't retrieve the API Key
+            if security_object.type == SecurityType.OAUTH2 and OAuthFlowType.CLIENT_CREDENTIALS in security_object.flows.keys():
+                token_security = security_object
 
+                # Get client credentials from somewhere
+                client_id = settings.MS_CLIENT_ID
+                client_secret = settings.MS_CLIENT_SECRET
+
+                # Trigger some code to get auth token using client credentials flow
+                token = settings.MS_TOKEN
+                
         # Separate arguments into query parameters and request data
         query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
         body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
@@ -294,9 +313,9 @@ class OpenAPIFunctionToolGenerator:
 if __name__ == "__main__":
 
     # Create the weather function with specific requirements
-    # weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/wweather_tool.yaml')
+    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
 
-    ms_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/ms_graph_api.yaml')
+    # ms_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/ms_graph_api.yaml')
     
     # user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
     
