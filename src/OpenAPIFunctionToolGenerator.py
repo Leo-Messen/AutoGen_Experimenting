@@ -5,7 +5,7 @@ from typing import Dict, Any, Callable
 from urllib.parse import urljoin
 from config import settings
 from openapi_parser.enumeration import BaseLocation, DataType, ParameterLocation
-from openapi_parser.specification import Security, SecurityType
+from openapi_parser.specification import Security, SecurityType, OAuthFlowType
 from openapi_parser import parse
 
 from requests.models import Request
@@ -212,7 +212,7 @@ class OpenAPIFunctionToolGenerator:
                 apikey = settings.WEATHER_API_KEY
 
                 # Should error if it can't retrieve the API Key
-            if security_object.type == SecurityType.OAUTH2:
+            if security_object.type == SecurityType.OAUTH2 and OAuthFlowType.CLIENT_CREDENTIALS in security_object.flows.keys():
                 token_security = security_object
 
                 # Get client credentials from somewhere
@@ -221,7 +221,7 @@ class OpenAPIFunctionToolGenerator:
 
                 # Trigger some code to get auth token using client credentials flow
                 token = settings.MS_TOKEN
-
+                
         # Separate arguments into query parameters and request data
         query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
         body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
