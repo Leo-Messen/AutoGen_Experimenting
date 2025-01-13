@@ -41,3 +41,5 @@ team:
 ```
 
 Agents can be dynamically configured using a YAML file. When defining tools for agents, the key (e.g. weather_tools) represents a specification of many tools, and the list under that key (e.g. get_weather, get_city_coordinates) represent the names of the tools that are used from that spec. A special USE_ALL_TOOLS item can be used which indicates that all of the tools in the defined specification are avaialable to the agent.
+
+The `AgentGenerator` class generates an agent team based on the specification provided via a path argument using the `generate_agents` method.
