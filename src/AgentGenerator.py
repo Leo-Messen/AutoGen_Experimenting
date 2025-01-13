@@ -10,7 +10,7 @@ from OpenAPIFunctionToolGenerator import OpenAPIFunctionToolGenerator
 
 class AgentGenerator:
     @staticmethod
-    def generate_agents(path: str) -> list:
+    def generate_agents(path: str):
 
         # Define a model
         model = OpenAIChatCompletionClient(
@@ -30,10 +30,13 @@ class AgentGenerator:
                 if 'tools' in agent_spec.keys():
                     for tool_spec in agent_spec['tools'].keys():
                         tool_names = agent_spec['tools'][tool_spec]
+
                         if tool_names[0] == 'USE_ALL_TOOLS':
                             agent_tools += AgentGenerator._get_tools(tool_spec)
                         else:
                             agent_tools += AgentGenerator._get_tools(tool_spec, tool_names)
+                # TODO : For now it's just using an agent chat agent but in the future it should use our custom core agents
+                # with the correct message handling behaviour           
                 agent = AssistantAgent(
                     agent_spec['name'],
                     system_message=agent_spec['system_message'],
@@ -43,7 +46,7 @@ class AgentGenerator:
 
                 agents.append(agent)
 
-        
+        # TODO: Remove this into its own function with Custom Core agents integration
         termmination_condition = TextMentionTermination("TERMINATE") 
         if 'max_messages' in team_spec['team'].keys():
             max_messages = team_spec['team']['max_messages']
