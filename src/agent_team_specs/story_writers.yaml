@@ -1,0 +1,12 @@
+team:
+  type: SelectorGroupChat
+  agents:
+    - name: writer_agent
+      description: Writer for creating any text content.
+      system_message: You are a Writer. You produce good work.
+
+    - name: editor_agent
+      description: Editor for planning and reviewing the content.
+      system_message:
+        You are an Editor. Plan and guide the task given by the user. Provide critical feedbacks to the draft produced by Writer.
+        Approve if the task is completed and the draft meets user's requirements. End your message with TERMINATE when you approve the draft.

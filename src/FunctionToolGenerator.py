@@ -1,9 +1,6 @@
 import requests
 import inspect
-import pprint
 from typing import Dict, Any, Callable
-from urllib.parse import urljoin
-from config import settings
 from openapi_parser.enumeration import BaseLocation, DataType, ParameterLocation
 from openapi_parser.specification import Security, SecurityType, OAuthFlowType
 from openapi_parser import parse
@@ -13,7 +10,7 @@ from autogen_core.tools import FunctionTool
 
 import typing
 
-class OpenAPIFunctionToolGenerator:
+class FunctionToolGenerator:
     @staticmethod
     def _get_query_params(operation, required: bool):
         queryParams = operation.parameters
@@ -121,16 +118,16 @@ class OpenAPIFunctionToolGenerator:
 
                 tool_desc = operation.description
             
-                rqQueryParams = OpenAPIFunctionToolGenerator._get_query_params(operation, True)
-                optQueryParams = OpenAPIFunctionToolGenerator._get_query_params(operation, False)
+                rqQueryParams = FunctionToolGenerator._get_query_params(operation, True)
+                optQueryParams = FunctionToolGenerator._get_query_params(operation, False)
                 
-                rqBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, True)
-                optBodyParams = OpenAPIFunctionToolGenerator._get_body_params(body, False)
+                rqBodyParams = FunctionToolGenerator._get_body_params(body, True)
+                optBodyParams = FunctionToolGenerator._get_body_params(body, False)
 
-                rqHeaderParams = OpenAPIFunctionToolGenerator._get_header_params(operation, True)
-                optHeaderParams = OpenAPIFunctionToolGenerator._get_header_params(operation, False)
+                rqHeaderParams = FunctionToolGenerator._get_header_params(operation, True)
+                optHeaderParams = FunctionToolGenerator._get_header_params(operation, False)
 
-                pathParams = OpenAPIFunctionToolGenerator._get_path_params(operation)
+                pathParams = FunctionToolGenerator._get_path_params(operation)
 
                 # check for operation level security
                 security = []
@@ -142,7 +139,7 @@ class OpenAPIFunctionToolGenerator:
                 else:
                     security = global_security
 
-                tool_func = OpenAPIFunctionToolGenerator._create_api_function(
+                tool_func = FunctionToolGenerator._create_api_function(
                                         path = path.url,
                                         base_url = specification.servers[0].url,
                                         func_name = operationId,
@@ -209,23 +206,23 @@ class OpenAPIFunctionToolGenerator:
             if security_object.type == SecurityType.API_KEY:
                 # Retrieve API key for this service
                 apikey_security = security_object
-                apikey = settings.WEATHER_API_KEY
+                apikey = "dummy key"
 
                 # Should error if it can't retrieve the API Key
             if security_object.type == SecurityType.OAUTH2 and OAuthFlowType.CLIENT_CREDENTIALS in security_object.flows.keys():
                 token_security = security_object
 
                 # Get client credentials from somewhere
-                client_id = settings.MS_CLIENT_ID
-                client_secret = settings.MS_CLIENT_SECRET
+                client_id = "dummy id"
+                client_secret = "dummy secret"
 
                 # Trigger some code to get auth token using client credentials flow
-                token = settings.MS_TOKEN
+                token = "dummy token" 
                 
         # Separate arguments into query parameters and request data
-        query_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
-        body_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
-        header_params = [x[0] for x in OpenAPIFunctionToolGenerator._join_lists(required_header_params, optional_header_params)]
+        query_params = [x[0] for x in FunctionToolGenerator._join_lists(required_query_params, optional_query_params)]
+        body_params = [x[0] for x in FunctionToolGenerator._join_lists(required_body_params, optional_body_params)]
+        header_params = [x[0] for x in FunctionToolGenerator._join_lists(required_header_params, optional_header_params)]
 
         # The actual API call function to be returned
         def api_call_function(**kwargs):
@@ -309,21 +306,3 @@ class OpenAPIFunctionToolGenerator:
             return l2
         else:
             return l1 + l2
-# Demonstration
-if __name__ == "__main__":
-
-    # Create the weather function with specific requirements
-    weather_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml')
-
-    # ms_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/ms_graph_api.yaml')
-    
-    # user_tools = OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml')
-    
-    # print([(wt.name, wt.description, inspect.signature(wt._func)) for wt in user_tools])
-    # print(user_tools)
-
-    # output = user_tools[2]._func(user_id = 3)
-    # print(output)
-
-    # ms_out = ms_tools[0]._func()
-    # print(ms_out)

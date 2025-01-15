@@ -18,9 +18,17 @@ paths:
       responses:
         "200":
           description: Response
+#   /me:
+#     get:
+#       operationId: my_prfoile
+#       summary: "blank"
+#       description: "blank"
 
-security:
-  - oAuth2ClientCredentials: []
+#       responses:
+#         "200":
+#           description: Ok
+# security:
+#   - oAuth2ClientCredentials: []
 
 components:
   securitySchemes:

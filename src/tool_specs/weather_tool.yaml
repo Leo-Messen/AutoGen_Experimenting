@@ -94,6 +94,9 @@ paths:
       operationId: get_city_coordinates
       summary: Return the latitude and longitude of a city
       description: Return the latitude and longitude of a city
+      security:
+        - ApiKeyAuth: []
+          oAuth2ClientCredentials: []
 
       parameters:
         - in: query
@@ -122,3 +125,12 @@ components:
       type: apiKey
       in: query # can be "header", "query" or "cookie"
       name: appid
+
+    oAuth2ClientCredentials:
+      type: oauth2
+      description: See Microsoft Graph API
+      flows:
+        clientCredentials:
+          tokenUrl: https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
+          scopes: {} # do not use scopes
+

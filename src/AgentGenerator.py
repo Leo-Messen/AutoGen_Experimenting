@@ -2,10 +2,10 @@ import yaml
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 from config import settings
-from autogen_agentchat.teams import RoundRobinGroupChat, Swarm
+from autogen_agentchat.teams import RoundRobinGroupChat, Swarm, SelectorGroupChat
 from autogen_agentchat.conditions import TextMentionTermination, MaxMessageTermination
 
-from OpenAPIFunctionToolGenerator import OpenAPIFunctionToolGenerator
+from FunctionToolGenerator import FunctionToolGenerator
 
 
 class AgentGenerator:
@@ -56,15 +56,17 @@ class AgentGenerator:
         if team_type == 'RoundRobinGroupChat':
             agent_team = RoundRobinGroupChat(agents, termination_condition = termmination_condition)
         
-
+        elif team_type == 'SelectorGroupChat':
+            agent_team = SelectorGroupChat(agents, model_client=model, termination_condition = termmination_condition)
+            
         return agent_team
     
     @staticmethod
     def _get_tools(tool_spec, tool_names = None):
         if tool_spec == 'weather_tools':
-           return OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml', tool_names)
+           return FunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/weather_tool.yaml', tool_names)
         elif tool_spec == 'create_user_tool':
-           return OpenAPIFunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml', tool_names)
+           return FunctionToolGenerator.openAPI_yaml_spec_to_functools('tool_specs/create_user_tool.yaml', tool_names)
 
 # Demonstration
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 team:
-  type: RoundRobinGroupChat
-  max_messages: 20
+  type: SelectorGroupChat
   agents:
     - name: weather_agent
       description: An agent that has access to tools that can get the current weather conditions in a specific location.
@@ -21,17 +20,3 @@ team:
       tools:
         create_user_tools:
           - USE_ALL_TOOLS
-# team:
-#   type: RoundRobinGroupChat
-# team:
-#   type: SelectorGroupChat
-
-# team:
-#   type: Swarm
-#   handoffs:
-#     weather_agent:
-#       - writer_agent
-#       - editor_agent
-#     writer_agent:
-#       - chief_editor_agent
-#       - holiday_booking_agent
