@@ -34,10 +34,11 @@ def get_optional_params(body):
     
     return optional
 
-specification = parse('tool_specs/create_user_tool.yaml')
+specification = parse('tool_specs/weather_tool.yaml')
 
 pprint.pp(specification)
-
+pprint.pp(specification.security)
+pprint.pp(specification.security_schemas)
 url = specification.servers[0].url + specification.paths[0].url
 operation = specification.paths[0].operations[0].method
 queryParams = specification.paths[0].operations[0].parameters

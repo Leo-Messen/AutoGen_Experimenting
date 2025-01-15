@@ -28,13 +28,13 @@ async def run():
     # await runtime.send_message(MyMessageType("Hello, World!"), agent_id)
     # await runtime.stop()  # Stop processing messages in the background.
     
-    agent_team = AgentGenerator.generate_agents('agent_team_specs/agent_spec2.yaml')
+    agent_team = AgentGenerator.generate_agents('agent_team_specs/story_writers.yaml')
 
     # stream = await agent_team.run(task="Hello from Doncaster!")
 
     # print(stream)
     
-    stream = agent_team.run_stream(task="Hello from Doncaster!")
+    stream = agent_team.run_stream(task="Write a short <30 word story about Doncaster")
 
     # async for m in stream:
     #     print(m)

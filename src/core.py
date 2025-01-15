@@ -144,6 +144,7 @@ class GroupChatManager(RoutedAgent):
             assert isinstance(message.body.content, str)
             if message.body.content.lower().strip(string.punctuation).endswith("approve"):
                 return
+            
         # Format message history.
         messages: List[str] = []
         for msg in self._chat_history:
@@ -275,7 +276,7 @@ async def run():
     await runtime.publish_message(
         GroupChatMessage(
             body=UserMessage(
-                content="Please write a short story about Nosferatu.",
+                content="Please write a short poem (< 20 words) on a topic of your choice.",
                 source="User",
             )
         ),
